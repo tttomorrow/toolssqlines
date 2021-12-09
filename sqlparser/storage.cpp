@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -261,8 +266,17 @@ bool SqlParser::ParseMysqlStorageClause(Token *table_name, Token **id_start, Tok
 		if(next == NULL)
 			break;
 
+		if(Token::Compare(next, ',', L','))
+		{
+			if(_target != SQL_MYSQL)
+			{
+				Token::Remove(next);
+			}
+			continue;
+		}
+		else
 		// ENGINE = type
-		if(next->Compare("ENGINE", L"ENGINE", 6) == true)
+		if(next->Compare("ENGINE", L"ENGINE", 6) == true || next->Compare("TYPE", L"TYPE", 4) == true)
 		{
 			// Equal sign = is optional in the clause
 			Token *equal = GetNextCharToken('=', L'=');
@@ -388,6 +402,219 @@ bool SqlParser::ParseMysqlStorageClause(Token *table_name, Token **id_start, Tok
 			exists = true;
 			continue;
 		}
+				else
+		// AVG_ROW_LENGTH = value
+		if(next->Compare("AVG_ROW_LENGTH", L"AVG_ROW_LENGTH", 14) == true)
+		{
+			// Equal sign = is optional in the clause
+			Token *equal = GetNextCharToken('=', L'=');
+			Token* val = GetNextNumberToken();
+
+			if(_target != SQL_MYSQL)
+			{
+				Token::Remove(next);
+				Token::Remove(equal);
+				Token::Remove(val);
+			}
+
+			exists = true;
+			continue;
+		}
+		else
+		// CHECKSUM = {0 | 1}
+		if(next->Compare("CHECKSUM", L"CHECKSUM", 8) == true)
+		{
+			// Equal sign = is optional in the clause
+			Token *equal = GetNextCharToken('=', L'=');
+			Token* val = GetNextNumberToken();
+
+			if(_target != SQL_MYSQL)
+			{
+				Token::Remove(next);
+				Token::Remove(equal);
+				Token::Remove(val);
+			}
+
+			exists = true;
+			continue;
+		}
+		else
+		// CONNECTION = 'string'
+		if(next->Compare("CONNECTION", L"CONNECTION", 10) == true)
+		{
+			// Equal sign = is optional in the clause
+			Token *equal = GetNextCharToken('=', L'=');
+			Token* val = GetNextToken();
+
+			if(_target != SQL_MYSQL)
+			{
+				Token::Remove(next);
+				Token::Remove(equal);
+				Token::Remove(val);
+			}
+
+			exists = true;
+			continue;
+		}
+		else
+		// MAX_ROWS = value
+		if(next->Compare("MAX_ROWS", L"MAX_ROWS", 8) == true)
+		{
+			// Equal sign = is optional in the clause
+			Token *equal = GetNextCharToken('=', L'=');
+			Token* val = GetNextNumberToken();
+
+			if(_target != SQL_MYSQL)
+			{
+				Token::Remove(next);
+				Token::Remove(equal);
+				Token::Remove(val);
+			}
+
+			exists = true;
+			continue;
+		}
+		else
+		// MIN_ROWS = value
+		if(next->Compare("MIN_ROWS", L"MIN_ROWS", 8) == true)
+		{
+			// Equal sign = is optional in the clause
+			Token *equal = GetNextCharToken('=', L'=');
+			Token* val = GetNextNumberToken();
+
+			if(_target != SQL_MYSQL)
+			{
+				Token::Remove(next);
+				Token::Remove(equal);
+				Token::Remove(val);
+			}
+
+			exists = true;
+			continue;
+		}
+		else
+		// PASSWORD = '******'
+		if(next->Compare("PASSWORD", L"PASSWORD", 8) == true)
+		{
+			// Equal sign = is optional in the clause
+			Token *equal = GetNextCharToken('=', L'=');
+			Token* val = GetNextNumberToken();
+
+			if(_target != SQL_MYSQL)
+			{
+				Token::Remove(next);
+				Token::Remove(equal);
+				Token::Remove(val);
+			}
+
+			exists = true;
+			continue;
+		}
+		else
+		// DELAY_KEY_WRITE = {0 | 1}
+		if(next->Compare("DELAY_KEY_WRITE", L"DELAY_KEY_WRITE", 15) == true)
+		{
+			// Equal sign = is optional in the clause
+			Token *equal = GetNextCharToken('=', L'=');
+			Token* val = GetNextToken();
+
+			if(_target != SQL_MYSQL)
+			{
+				Token::Remove(next);
+				Token::Remove(equal);
+				Token::Remove(val);
+			}
+
+			exists = true;
+			continue;
+		}
+		else
+		// INSERT_METHOD = { NO | FIRST | LAST }
+		if(next->Compare("INSERT_METHOD", L"INSERT_METHOD", 13) == true)
+		{
+			// Equal sign = is optional in the clause
+			Token *equal = GetNextCharToken('=', L'=');
+			Token* val = GetNextToken();
+
+			if(_target != SQL_MYSQL)
+			{
+				Token::Remove(next);
+				Token::Remove(equal);
+				Token::Remove(val);
+			}
+
+			exists = true;
+			continue;
+		}
+		else
+		// DATA DRIECTORY = 'path'
+		if(next->Compare("DATA", L"DATA", 4) == true)
+		{
+			Token* driectory = GetNextToken();
+
+			// Equal sign = is optional in the clause
+			Token *equal = GetNextCharToken('=', L'=');
+			Token* val = GetNextToken();
+
+			if(_target != SQL_MYSQL)
+			{
+				Token::Remove(driectory);
+				Token::Remove(next);
+				Token::Remove(equal);
+				Token::Remove(val);
+			}
+
+			exists = true;
+			continue;
+		}
+		else
+		// INDEX DRIECTORY = 'path'
+		if(next->Compare("INDEX", L"INDEX", 5) == true)
+		{
+			Token* driectory = GetNextToken();
+
+			// Equal sign = is optional in the clause
+			Token *equal = GetNextCharToken('=', L'=');
+			Token* val = GetNextToken();
+
+			if(_target != SQL_MYSQL)
+			{
+				Token::Remove(driectory);
+				Token::Remove(next);
+				Token::Remove(equal);
+				Token::Remove(val);
+			}
+
+			exists = true;
+			continue;
+		}
+		else
+		// UNION = (table_name [, table_name ...])
+		if(next->Compare("UNION", L"UNION", 5) == true)
+		{
+			// Equal sign = is optional in the clause
+			Token *equal = GetNextCharToken('=', L'=');
+			Token* listp = GetNextCharToken('(', L'(');
+			Token* liste = NULL;
+
+			if(_target != SQL_MYSQL)
+			{
+				Token::Remove(next);
+				Token::Remove(equal);
+				Token::Remove(listp);
+			}
+			while ((liste = GetNextCharToken(')', L')')) == NULL && _target != SQL_MYSQL)
+			{
+				Token::Remove(GetNextToken());
+			}
+			if(_target != SQL_MYSQL)
+			{
+				Token::Remove(liste);
+			}
+
+			exists = true;
+			continue;
+		}
 
 		// Not a MySQL stoage clause
 		PushBack(next);
@@ -399,7 +626,7 @@ bool SqlParser::ParseMysqlStorageClause(Token *table_name, Token **id_start, Tok
 		*id_start = auto_start;
 
 	// Restart sequence for PostgreSQL and Greenplum
-	if(auto_start != NULL && (_target == SQL_POSTGRESQL || _target == SQL_GREENPLUM))
+	if(auto_start != NULL && (_target == SQL_POSTGRESQL || _target == SQL_GREENPLUM || _target == SQL_OPENGAUSS))
 	{
 		// Try to get ;
 		Token *semi = GetNextCharToken(';', L';');

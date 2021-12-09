@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -227,6 +232,9 @@ short SqlData::DefineSqlParserType(short type)
 	if(type == SQLDATA_POSTGRESQL)
 		rt = SQL_POSTGRESQL;
 	else
+        if(type == SQLDATA_OPENGAUSS)
+                rt = SQL_OPENGAUSS;
+        else
 	if(type == SQLDATA_SYBASE)
 		rt = SQL_SYBASE;
 	else
@@ -748,7 +756,7 @@ void SqlData::CreateMetadataTaskForColumnDefault(SqlColMeta &col)
 	}
 	else
 	// in PostgreSQL 'ALTER col SET DEFAULT value'
-	if(_target_type == SQL_POSTGRESQL)
+	if(_target_type == SQL_POSTGRESQL || _target_type == SQL_OPENGAUSS)
 	{
 		task.statement += " ALTER ";
 		task.statement += col.column;

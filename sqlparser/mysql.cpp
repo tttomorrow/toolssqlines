@@ -1,5 +1,10 @@
 /** 
-* Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -366,9 +371,19 @@ bool SqlParser::MysqlCreateDatabase(Token *create, Token *database, Token *name)
         Token *default_ = GetNext("DEFAULT", L"DEFAULT", 7);
 
         Token *next = GetNext();
+	Token *precom = NULL;
+	bool need_drop = false;
 
         if(next == NULL)
             break;
+	else
+	if(Token::Compare(next, ',', L','))
+	{
+		precom = next;
+		next = GetNext();
+		if(next == NULL)
+			break;
+	}
 
         // [DEFAULT] CHARACTER SET [=] name in MySQL
         if(next->Compare("CHARACTER", L"CHARACTER", 9) == true)
@@ -381,16 +396,20 @@ bool SqlParser::MysqlCreateDatabase(Token *create, Token *database, Token *name)
             // Default character set name
             Token *name = GetNext(set);
 
-            if(_target == SQL_ORACLE && name != NULL)
+            if((_target == SQL_ORACLE || _target == SQL_OPENGAUSS) && name != NULL)
+	    {
                 Comment(Nvl(default_, next), name);
+		need_drop = true;
+	    }
         }
         else
             // [DEFAULT] COLLATE [=] name in MySQL
             if(next->Compare("COLLATE", L"COLLATE", 7) == true)
             {
-                // Optional = 
-                /*Token *equal */ (void) GetNext('=', L'=');
+                if ( _target == SQL_OPENGAUSS)
+                    Token::Change(next, "LC_COLLATE", L"LC_COLLATE", 10);
 
+                (void) GetNext('=', L'=');
                 // Default collate name
                 Token *name = GetNext();
 
@@ -402,6 +421,11 @@ bool SqlParser::MysqlCreateDatabase(Token *create, Token *database, Token *name)
                 PushBack(next);
                 break;
             }
+
+	if (need_drop)
+	{
+		Token::Remove(precom);
+	}
     }
 
     // CREATE USER in Oracle
@@ -416,3 +440,4 @@ bool SqlParser::MysqlCreateDatabase(Token *create, Token *database, Token *name)
 
     return true;
 }
+

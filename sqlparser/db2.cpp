@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,7 +170,7 @@ bool SqlParser::ParseDb2GeneratedClause(Token *create, Token *table_name, Token 
 	}
 	else
 	// Use a sequence and DEFAULT nextval for PostgreSQL and Greenplum
-	if(_target == SQL_POSTGRESQL || _target == SQL_GREENPLUM)
+	if(_target == SQL_POSTGRESQL || _target == SQL_GREENPLUM || _target == SQL_OPENGAUSS)
 	{
 		TokenStr seq_name(table_name);
 

@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,13 +82,13 @@ void SqlParser::ConvertIdentifier(Token *token, int type, int scope)
 
 	// Convert column name
 	if((type == SQL_IDENT_COLUMN || type == SQL_IDENT_COLUMN_SINGLE) && Source(SQL_ORACLE) == true && 
-        Target(SQL_MYSQL) == true)
+		Target(SQL_MYSQL) == true)
 	{
 		ConvertColumnIdentifier(token, scope);
 		return;
 	}
-    else
-    if(type == SQL_IDENT_COLUMN_SINGLE && Source(SQL_TERADATA) == true && Target(SQL_ESGYNDB) == true)
+	else
+	if(type == SQL_IDENT_COLUMN_SINGLE && Source(SQL_TERADATA) == true && Target(SQL_ESGYNDB) == true)
 	{
 		ConvertColumnIdentifierSingle(token, scope);
 		return;
@@ -98,7 +103,7 @@ void SqlParser::ConvertIdentifier(Token *token, int type, int scope)
 			ConvertMysqlIdentifier(token, type);
 	}
 	else
-	if(_source == SQL_POSTGRESQL)
+	if(_source == SQL_POSTGRESQL || _source == SQL_OPENGAUSS)
 	{
 		TokenStr ident;
 		size_t len = 0;
@@ -150,7 +155,7 @@ void SqlParser::ConvertIdentifier(Token *token, int type, int scope)
 	}		
 	else
 	// Remove brace and backtick 
-	if(Target(SQL_ORACLE, SQL_DB2, SQL_POSTGRESQL, SQL_GREENPLUM) == true)
+	if(Target(SQL_ORACLE, SQL_DB2, SQL_POSTGRESQL, SQL_OPENGAUSS, SQL_GREENPLUM) == true)
 	{
 		if(*cur == '[' || *cur == '`')
 		{
@@ -292,29 +297,29 @@ void SqlParser::ConvertColumnIdentifier(Token *token, int /*scope*/)
 // Convert single (not qualified) column identifier
 void SqlParser::ConvertColumnIdentifierSingle(Token *token, int /*scope*/)
 {
-    if(token == NULL || token->str == NULL)
+	if(token == NULL || token->str == NULL)
 		return;
 
 	TokenStr ident;
-    bool changed = false;
+	bool changed = false;
 
-    for(size_t i = 0; i < token->len; i++)
-    {
-        // $ allowed in Teradata but not allowed in EsgynDB
-        if(TOKEN_CMPCP(token, '$', i) == true)
-        {
-            if(Target(SQL_ESGYNDB))
-            {
-                ident.Append("_", L"_", 1);
-                changed = true;
-            }            
-        }
-        else
-            ident.Append(token, i, 1);
-    }
+	for(size_t i = 0; i < token->len; i++)
+	{
+		// $ allowed in Teradata but not allowed in EsgynDB
+		if(TOKEN_CMPCP(token, '$', i) == true)
+		{
+			if(Target(SQL_ESGYNDB))
+			{
+				ident.Append("_", L"_", 1);
+				changed = true;
+			}			
+		}
+		else
+			ident.Append(token, i, 1);
+	}
 
-    if(changed)
-        Token::ChangeNoFormat(token, ident); 
+	if(changed)
+		Token::ChangeNoFormat(token, ident); 
 }
 
 // Oracle PL/SQL cursor parameter reference NOW PROCESSED AS LOCAL BLOCK VAR
@@ -1005,35 +1010,35 @@ bool SqlParser::ParseColumnConstraints(Token *create, Token *table_name, Token *
 		{
 			Token *next = GetNextToken();
 
-            if(TOKEN_CMP(next, "NULL") == true)
-            {
-                if(_obj_scope == SQL_SCOPE_TABLE)
-                    CREATE_TAB_STMS_STATS("NOT NULL constraints")
+			if(TOKEN_CMP(next, "NULL") == true)
+			{
+				if(_obj_scope == SQL_SCOPE_TABLE)
+					CREATE_TAB_STMS_STATS("NOT NULL constraints")
 
-                if(_target == SQL_HIVE)
-                    Token::Remove(cns, next);
-            }
-            else
-            // DB2 NOT LOGGED and NOT COMPACT 
-            if(TOKEN_CMP(next, "LOGGED") == true || TOKEN_CMP(next, "COMPACT") == true)
-            {
-                if(_target != SQL_DB2)
-    				Token::Remove(cns, next);
-            }
-            else
-            // NOT CASESPECIFIC in Teradata, EsgynDB 
-            if(TOKEN_CMP(next, "CASESPECIFIC") == true)
-            {
-                if(Target(SQL_TERADATA, SQL_ESGYNDB) == false)
-                    Token::Remove(cns, next);
-                else
-                // NOT CASESPECIFIC must go right after data type before NOT NULL/DEFAULT in EsgynDB
-                if(_source != SQL_ESGYNDB && _target == SQL_ESGYNDB)
-                {
-                    AppendFirst(type_end, " NOT CASESPECIFIC", L" NOT CASESPECIFIC", 17, next);
-                    Token::Remove(cns, next); 
-                }
-            }
+				if(_target == SQL_HIVE)
+					Token::Remove(cns, next);
+			}
+			else
+			// DB2 NOT LOGGED and NOT COMPACT 
+			if(TOKEN_CMP(next, "LOGGED") == true || TOKEN_CMP(next, "COMPACT") == true)
+			{
+				if(_target != SQL_DB2)
+					Token::Remove(cns, next);
+			}
+			else
+			// NOT CASESPECIFIC in Teradata, EsgynDB 
+			if(TOKEN_CMP(next, "CASESPECIFIC") == true)
+			{
+				if(Target(SQL_TERADATA, SQL_ESGYNDB) == false)
+					Token::Remove(cns, next);
+				else
+				// NOT CASESPECIFIC must go right after data type before NOT NULL/DEFAULT in EsgynDB
+				if(_source != SQL_ESGYNDB && _target == SQL_ESGYNDB)
+				{
+					AppendFirst(type_end, " NOT CASESPECIFIC", L" NOT CASESPECIFIC", 17, next);
+					Token::Remove(cns, next); 
+				}
+			}
 
 			num++;
 		}
@@ -1055,7 +1060,7 @@ bool SqlParser::ParseColumnConstraints(Token *create, Token *table_name, Token *
 			if(_target == SQL_ORACLE)
 				Token::Remove(cns);
 			else
-			if(_target == SQL_POSTGRESQL)
+			if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
 			{
 				Token *seq_name = AppendIdentifier(table_name, "_seq", L"_seq", 4);
 		
@@ -1088,7 +1093,7 @@ bool SqlParser::ParseColumnConstraints(Token *create, Token *table_name, Token *
 				Token *inc = GetNextToken();
 				Token *close = GetNextCharToken(')', L')');
 
-				if(Target(SQL_ORACLE, SQL_POSTGRESQL, SQL_MYSQL) == true)
+				if(Target(SQL_ORACLE, SQL_POSTGRESQL, SQL_OPENGAUSS, SQL_MYSQL) == true)
 					Token::Remove(open, close);
 
 				if(id_start != NULL)
@@ -1243,7 +1248,7 @@ bool SqlParser::ParseColumnConstraints(Token *create, Token *table_name, Token *
 				Token::Remove(cns);
 			else
 			// For PostgreSQL and Greenplum, add DEFAULT nextval
-			if(_target == SQL_POSTGRESQL || _target == SQL_GREENPLUM)
+			if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS || _target == SQL_GREENPLUM)
 			{
 				Token *seq_name = AppendIdentifier(table_name, "_seq", L"_seq", 4);
 		
@@ -1309,10 +1314,10 @@ bool SqlParser::ParseColumnConstraints(Token *create, Token *table_name, Token *
 			// Remove for SQL Server, Oracle, Hive 
 			if(Target(SQL_SQL_SERVER, SQL_ORACLE, SQL_HIVE) == true)
 				Token::Remove(cns, name);
-            else
-            // EsgynDB does not support LATIN charset
-            if(_target == SQL_ESGYNDB && TOKEN_CMP(name, "LATIN") == true)
-                Token::Remove(cns, name);
+			else
+			// EsgynDB does not support LATIN charset
+			if(_target == SQL_ESGYNDB && TOKEN_CMP(name, "LATIN") == true)
+				Token::Remove(cns, name);
 
 			num++;
 		}
@@ -1365,22 +1370,22 @@ bool SqlParser::ParseColumnConstraints(Token *create, Token *table_name, Token *
 			ParseTeradataCompressClauseDefaultExpression(cns);
 			num++;
 		}
-        else
+		else
 		// TITLE 'text' clause in Teradata
 		if(TOKEN_CMP(cns, "TITLE") == true)
 		{
-            Token *value = GetNextStringToken();
+			Token *value = GetNextStringToken();
 
 			if(_target != SQL_TERADATA && value != NULL)
 				Token::Remove(cns, value);
 
 			num++;
 		}
-        else
+		else
 		// FORMAT 'format' clause in Teradata
 		if(TOKEN_CMP(cns, "FORMAT") == true)
 		{
-            Token *value = GetNextStringToken();
+			Token *value = GetNextStringToken();
 
 			if(_target != SQL_TERADATA && value != NULL)
 				Token::Remove(cns, value);
@@ -1489,19 +1494,19 @@ bool SqlParser::ParseDefaultExpression(Token *type, Token *type_end, Token *toke
 		default_end = GetLastToken();
 	}
 
-    bool commented = false;
+	bool commented = false;
 
-    // Not all databases supports functions in DEFAULT
-    if(first != NULL && first->type == TOKEN_FUNCTION)
-    {
-        // Only CURRENT_DATE/TIME/TIMESTAMP allowed in EsgynDB
-        if(_target == SQL_ESGYNDB && TOKEN_CMP(first, "CURRENT_DATE") == false && 
-            TOKEN_CMP(first, "CURRENT_TIMESTAMP") == false && TOKEN_CMP(first, "CURRENT_TIME") == false)
-        {
-            Comment(token, default_end);
-            commented = true;
-        }
-    }
+	// Not all databases supports functions in DEFAULT
+	if(first != NULL && first->type == TOKEN_FUNCTION)
+	{
+		// Only CURRENT_DATE/TIME/TIMESTAMP allowed in EsgynDB
+		if(_target == SQL_ESGYNDB && TOKEN_CMP(first, "CURRENT_DATE") == false && 
+			TOKEN_CMP(first, "CURRENT_TIMESTAMP") == false && TOKEN_CMP(first, "CURRENT_TIME") == false)
+		{
+			Comment(token, default_end);
+			commented = true;
+		}
+	}
 
 	Token *new_default = token;
 	Token *new_default_first = first;
@@ -1567,9 +1572,9 @@ bool SqlParser::ParseDefaultExpression(Token *type, Token *type_end, Token *toke
 		}
 	}
 
-    // Hive does not support DEFAULT
-    if(_target == SQL_HIVE)
-        Token::Remove(token, default_end);
+	// Hive does not support DEFAULT
+	if(_target == SQL_HIVE)
+		Token::Remove(token, default_end);
 
 	return true;
 }
@@ -1661,9 +1666,9 @@ bool SqlParser::ParseStandaloneColumnConstraints(Token *alter, Token *table_name
 			ParseConstraintOption();
 			exists = true;
 
-            // Hive does not support constraints
-            if(_target == SQL_HIVE)
-                Token::Remove(cns, GetLastToken());
+			// Hive does not support constraints
+			if(_target == SQL_HIVE)
+				Token::Remove(cns, GetLastToken());
 
 			continue;
 		}
@@ -1764,8 +1769,8 @@ bool SqlParser::ParseKeyConstraint(Token * /*alter*/, Token *table_name, Token *
 		/*Token *key */ (void) GetNextWordToken("KEY", L"KEY", 3);
 		primary = true;
 
-        if(_stmt_scope == SQL_STMT_ALTER_TABLE)
-            ALTER_TAB_STMS_STATS("Add PRIMARY KEY")
+		if(_stmt_scope == SQL_STMT_ALTER_TABLE)
+			ALTER_TAB_STMS_STATS("Add PRIMARY KEY")
 	}
 	else
 	// UNIQUE
@@ -1801,8 +1806,8 @@ bool SqlParser::ParseKeyConstraint(Token * /*alter*/, Token *table_name, Token *
 			}
 		}
 
-        if(_stmt_scope == SQL_STMT_ALTER_TABLE)
-            ALTER_TAB_STMS_STATS("Add UNIQUE constraint")
+		if(_stmt_scope == SQL_STMT_ALTER_TABLE)
+			ALTER_TAB_STMS_STATS("Add UNIQUE constraint")
 	}
 	else
 	// MySQL INDEX or KEY for inline non-unique index
@@ -2143,8 +2148,8 @@ bool SqlParser::ParseForeignKey(Token *foreign)
 	// Parse foreign key options
 	ParseKeyIndexOptions();
 
-    if(_stmt_scope == SQL_STMT_ALTER_TABLE)
-        ALTER_TAB_STMS_STATS("Add FOREIGN KEY")
+	if(_stmt_scope == SQL_STMT_ALTER_TABLE)
+		ALTER_TAB_STMS_STATS("Add FOREIGN KEY")
 
 	return true;
 }
@@ -2166,8 +2171,8 @@ bool SqlParser::ParseCheckConstraint(Token *check)
 	if(_target == SQL_REDSHIFT)
 		Comment(check, GetLastToken());
 
-    if(_stmt_scope == SQL_STMT_ALTER_TABLE)
-        ALTER_TAB_STMS_STATS("Add CHECK constraint")
+	if(_stmt_scope == SQL_STMT_ALTER_TABLE)
+		ALTER_TAB_STMS_STATS("Add CHECK constraint")
 
 	return true;
 }
@@ -2239,13 +2244,13 @@ bool SqlParser::ParseConstraintOption()
 // Get and parse the next token as an expression
 Token* SqlParser::ParseExpression()
 {
-    Token *first = GetNext();
+	Token *first = GetNext();
 
-    if(ParseExpression(first))
-        return first;
+	if(ParseExpression(first))
+		return first;
 
-    PushBack(first);
-    return NULL;
+	PushBack(first);
+	return NULL;
 }
 
 // Parse an expression
@@ -2304,10 +2309,10 @@ bool SqlParser::ParseExpression(Token *first, int prev_operator)
 	// Datetime literals
 	if(ParseDatetimeLiteral(first) == true)
 		exists = true;
-    else
-    // Named variable and expression: param => expr (Oracle)
-    if(ParseNamedVarExpression(first) == true)
-        exists = true;
+	else
+	// Named variable and expression: param => expr (Oracle)
+	if(ParseNamedVarExpression(first) == true)
+		exists = true;
 	else
 	// CASE expression (check CASE and IF before function as it can contain ( before first expression)
 	if(ParseCaseExpression(first) == true)
@@ -2486,25 +2491,25 @@ bool SqlParser::ParseNamedVarExpression(Token *token)
 	if(token == NULL)
 		return false;
 
-    Token *equal = GetNext('=', L'=');
-    Token *arrow = GetNext(equal, '>', L'>');
+	Token *equal = GetNext('=', L'=');
+	Token *arrow = GetNext(equal, '>', L'>');
 
-    if(arrow == NULL)
-    {
-        PushBack(equal);
-        return false;
-    }
+	if(arrow == NULL)
+	{
+		PushBack(equal);
+		return false;
+	}
 	else
 	{
 		// := in PostgreSQL
-		if(Target(SQL_POSTGRESQL))
+		if(Target(SQL_POSTGRESQL, SQL_OPENGAUSS))
 		{
 			TOKEN_CHANGE(equal, ":");
 			TOKEN_CHANGE(arrow, "=");
 		}
 	}
 
-    ParseExpression();
+	ParseExpression();
 
 	return true;
 }
@@ -2929,7 +2934,7 @@ bool SqlParser::ParseInPredicate(Token *in)
 
 	/*Token *close */ TOKEN_GETNEXT(')');
 
-    // Return true if at least IN ( parsed. Other inside can be complex select and ) can be missed
+	// Return true if at least IN ( parsed. Other inside can be complex select and ) can be missed
 	// so returning false if ) not found will mean double parsing
 	return true;
 }
@@ -2963,11 +2968,11 @@ bool SqlParser::ParseBlock(int type, bool frontier, int scope, int *result_sets)
 
 			if(block == true)
 			{
-                _spl_begin_blocks.Add(token);
+				_spl_begin_blocks.Add(token);
 
 				ParseBlock(SQL_BLOCK_BEGIN, true, scope, result_sets);
 
-                _spl_begin_blocks.DeleteLast();
+				_spl_begin_blocks.DeleteLast();
 
 				Token *end = GetNext("END", L"END", 3);
 
@@ -3392,7 +3397,7 @@ bool SqlParser::ParseAdditionOperator(Token *first, int prev_operator)
 		if(string_concat == true)
 		{
 			// Use || in Oracle and PostgreSQL
-			if(Target(SQL_ORACLE, SQL_POSTGRESQL) == true)
+			if(Target(SQL_ORACLE, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
 			{
 				Token::Change(plus, "||", L"||", 2);
 			}
@@ -3536,16 +3541,16 @@ bool SqlParser::ParsePercentOperator(Token *first)
 			TOKEN_CHANGE(second, "NOT_FOUND = 1");
 			Token::Remove(first, cent);
 		}
-        else
-        // @@FETCH_STATUS = 0 in SQL Server
+		else
+		// @@FETCH_STATUS = 0 in SQL Server
 		if(_target == SQL_SQL_SERVER)
 		{
 			TOKEN_CHANGE(second, "@@FETCH_STATUS = 0");
 			Token::Remove(first, cent);
 		}
 	}
-    else
-    // cursor%FOUND in Oracle
+	else
+	// cursor%FOUND in Oracle
 	if(TOKEN_CMP(second, "FOUND") == true)
 	{
 		if(_target_app == APP_JAVA)
@@ -3803,7 +3808,7 @@ bool SqlParser::ParseUnitsOperator(Token *first)
 		Token::Remove(field);
 	else
 	// INTERVAL 'num' units, or var * INTERVAL '1' units in PostgreSQL
-	if(_target == SQL_POSTGRESQL)
+	if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
 	{
 		// Number constant
 		if(first_num == true)

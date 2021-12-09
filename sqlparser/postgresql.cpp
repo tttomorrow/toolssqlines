@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +65,7 @@ void SqlParser::PostgresFormatToConcat(Token *format, ListW &params)
 	}
 
 	// For not PostgreSQL, remove format if a % placeholder exists
-	if(num > 0 && Target(SQL_POSTGRESQL) == false)
+	if(num > 0 && Target(SQL_POSTGRESQL, SQL_OPENGAUSS) == false)
 	{
 		// Append the trail string
 		if(str.len > 5)
@@ -123,7 +128,7 @@ bool SqlParser::ParsePostgresBodyEnd()
 			// VOLATILE
 			if(option->Compare("VOLATILE", L"VOLATILE", 8) == true)
 			{
-				if(_target != SQL_POSTGRESQL)
+				if(_target != SQL_POSTGRESQL || _target != SQL_OPENGAUSS)
 					Token::Remove(option);
 
 				exists = true;
@@ -135,7 +140,7 @@ bool SqlParser::ParsePostgresBodyEnd()
 			{
 				Token *num = GetNextToken();
 
-				if(_target != SQL_POSTGRESQL)
+				if(_target != SQL_POSTGRESQL || _target != SQL_OPENGAUSS)
 					Token::Remove(option, num);
 
 				exists = true;

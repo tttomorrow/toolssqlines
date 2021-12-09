@@ -1,18 +1,23 @@
 /** 
-* Copyright (c) 2016 SQLines
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 // SQLParser for datatypes
 
@@ -341,8 +346,8 @@ bool SqlParser::ParseTypedVariable(Token *var, Token *ref_type)
     if(var == NULL || ref_type == NULL)
         return false;
 
-	STATS_DECL
-	STATS_DTL_DECL
+    STATS_DECL
+    STATS_DTL_DECL
 
     // %TYPE and %ROWTYPE in Oracle
     Token *cent = GetNextCharToken('%', L'%');
@@ -369,52 +374,52 @@ bool SqlParser::ParseTypedVariable(Token *var, Token *ref_type)
         if(type == NULL && rowtype == NULL)
             return false;
 
-		if(type != NULL)
-		{
-			STATS_SET_DESC(SQL_USER_DATATYPE_TYPE_DESC)
-			STATS_SET_CONV_NO_NEED(Target(SQL_ORACLE, SQL_MARIADB_ORA, SQL_POSTGRESQL, SQL_NETEZZA))
+        if(type != NULL)
+        {
+            STATS_SET_DESC(SQL_USER_DATATYPE_TYPE_DESC)
+            STATS_SET_CONV_NO_NEED(Target(SQL_ORACLE, SQL_MARIADB_ORA, SQL_POSTGRESQL, SQL_NETEZZA, SQL_OPENGAUSS))
 
-			UDTYPE_STATS_V("%TYPE", var)
-		}
-		else
-		{
-			STATS_SET_DESC(SQL_USER_DATATYPE_ROWTYPE_DESC)
-			STATS_SET_CONV_NO_NEED(Target(SQL_ORACLE, SQL_MARIADB_ORA, SQL_POSTGRESQL, SQL_NETEZZA))
+            UDTYPE_STATS_V("%TYPE", var)
+        }
+        else
+        {
+            STATS_SET_DESC(SQL_USER_DATATYPE_ROWTYPE_DESC)
+            STATS_SET_CONV_NO_NEED(Target(SQL_ORACLE, SQL_MARIADB_ORA, SQL_POSTGRESQL, SQL_OPENGAUSS, SQL_NETEZZA))
 
-			UDTYPE_STATS_V("%ROWTYPE", var)
-		}
+            UDTYPE_STATS_V("%ROWTYPE", var)
+        }
     }
 
     UDTYPE_DTL_STATS_L(ref_type)
 
-	if(_target_app == APP_JAVA)
-	{
-		// %TYPE
-		if(type != NULL)
-		{
-			// Read the data type from available meta information
-			const char *meta_type = GetMetaType(ref_type);
+    if(_target_app == APP_JAVA)
+    {
+        // %TYPE
+        if(type != NULL)
+        {
+            // Read the data type from available meta information
+            const char *meta_type = GetMetaType(ref_type);
 
-			if(meta_type != NULL)
-			{
-			   TokenStr java_type(_java->MapSqlDataType(meta_type));
-			   Token::ChangeNoFormat(ref_type, java_type);
-			}
-			else
-				TOKEN_CHANGE_NOFMT(ref_type, "Object /* Use -meta option */");
-		}
-		else
-			// Save variable
-			_spl_rowtype_vars.Add(var);
+            if(meta_type != NULL)
+            {
+               TokenStr java_type(_java->MapSqlDataType(meta_type));
+               Token::ChangeNoFormat(ref_type, java_type);
+            }
+            else
+                TOKEN_CHANGE_NOFMT(ref_type, "Object /* Use -meta option */");
+        }
+        else
+            // Save variable
+            _spl_rowtype_vars.Add(var);
 
-		Token::Remove(cent, Nvl(type, rowtype));
-	}
-	else
+        Token::Remove(cent, Nvl(type, rowtype));
+    }
+    else
     // No conversion required
-    if(Source(SQL_ORACLE, SQL_MARIADB_ORA, SQL_POSTGRESQL, SQL_NETEZZA) && 
-		Target(SQL_ORACLE, SQL_MARIADB_ORA, SQL_POSTGRESQL, SQL_NETEZZA))
+    if(Source(SQL_ORACLE, SQL_MARIADB_ORA, SQL_POSTGRESQL, SQL_OPENGAUSS, SQL_NETEZZA) && 
+        Target(SQL_ORACLE, SQL_MARIADB_ORA, SQL_POSTGRESQL, SQL_OPENGAUSS, SQL_NETEZZA))
         return true;
-	else
+    else
     // Convert %TYPE
     if(type != NULL)
     {
@@ -489,15 +494,15 @@ bool SqlParser::ParseAutoIncType(Token *name)
     if(name == NULL)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
-	if(!TOKEN_CMP(name, "AUTOINC"))
+    if(!TOKEN_CMP(name, "AUTOINC"))
         return false;
 
     if(_target == SQL_SQL_SERVER)
-		TOKEN_CHANGE(name, "INT IDENTITY");
+        TOKEN_CHANGE(name, "INT IDENTITY");
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -513,8 +518,8 @@ bool SqlParser::ParseBfileType(Token *name)
     if(name->Compare("BFILE", L"BFILE", 5) == false)
         return false;
 
-	STATS_DECL
-	STATS_ITM_DECL
+    STATS_DECL
+    STATS_ITM_DECL
 
     // Convet to VARCHAR(255) in other databases
     if(_target != SQL_ORACLE)
@@ -538,14 +543,14 @@ bool SqlParser::ParseBigdatetimeType(Token *name)
     if(name->Compare("BIGDATETIME", L"BIGDATETIME", 11) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
-	// Convert to DATETIME2(6) in SQL Server
+    // Convert to DATETIME2(6) in SQL Server
     if(_target == SQL_SQL_SERVER)
         Token:: Change(name, "DATETIME2(6)", L"DATETIME2(6)", 12);
     else
         // Convet to TIMESTAMP in Oracle, PostgreSQL
-        if(Target(SQL_ORACLE, SQL_POSTGRESQL) == true)
+        if(Target(SQL_ORACLE, SQL_OPENGAUSS, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
             Token::Change(name, "TIMESTAMP", L"TIMESTAMP", 9);
 
     STATS_ITM_DECL 
@@ -564,9 +569,9 @@ bool SqlParser::ParseBigintType(Token *name, int clause_scope)
     bool bigint = false;
     bool bigint_in_braces = false;
 
-	STATS_DECL
+    STATS_DECL
 
-	if(name->Compare("BIGINT", L"BIGINT", 6) == true)
+    if(name->Compare("BIGINT", L"BIGINT", 6) == true)
         bigint = true;
     else
     // Can be enclosed in [] for SQL Server
@@ -603,19 +608,19 @@ bool SqlParser::ParseBigintType(Token *name, int clause_scope)
     if(_target != SQL_SQL_SERVER && bigint_in_braces == true)
         Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
-	if(bigint_in_braces)
-	{
-		DTYPE_STATS_V("BIGINT", name)
-		DTYPE_DTL_STATS_ST("BIGINT", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_0(name)
-	}
-	
+    if(bigint_in_braces)
+    {
+        DTYPE_STATS_V("BIGINT", name)
+        DTYPE_DTL_STATS_ST("BIGINT", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_0(name)
+    }
+    
     return true;
 }
 
@@ -628,7 +633,7 @@ bool SqlParser::ParseBigserialType(Token *name)
     if(name->Compare("BIGSERIAL", L"BIGSERIAL", 9) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
     Token *open = GetNextCharToken('(', L'(');
 
     // Start is optional in Informix
@@ -650,7 +655,7 @@ bool SqlParser::ParseBigserialType(Token *name)
         if(_target == SQL_SQL_SERVER)
             Token::Change(name, "BIGINT", L"BIGINT", 6);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -666,9 +671,9 @@ bool SqlParser::ParseBigtimeType(Token *name)
     if(name->Compare("BIGTIME", L"BIGTIME", 7) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
-	// Convert to TIMESTAMP in Oracle
+    // Convert to TIMESTAMP in Oracle
     if(_target == SQL_ORACLE)
         Token::Change(name, "TIMESTAMP", L"TIMESTAMP", 9);
     else
@@ -681,7 +686,7 @@ bool SqlParser::ParseBigtimeType(Token *name)
                 Append(name, "(6)", L"(6)", 3);
         }
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
     
@@ -697,7 +702,7 @@ bool SqlParser::ParseBinaryType(Token *name)
     bool binary = false;
     bool binary_in_braces = false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(name->Compare("BINARY", L"BINARY", 6) == true)
         binary = true;
@@ -742,7 +747,7 @@ bool SqlParser::ParseBinaryType(Token *name)
             }
             else
                 // Change to BYTEA in PostgreSQL
-                if(_target == SQL_POSTGRESQL)
+                if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                 {
                     Token::Remove(name);
                     Token::Change(varying, "BYTEA", L"BYTEA", 5);
@@ -773,7 +778,7 @@ bool SqlParser::ParseBinaryType(Token *name)
                 }
                 else
                     // Convert to BYTEA in PostgreSQL
-                    if(_target == SQL_POSTGRESQL)
+                    if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                     {
                         Token::Remove(name);
                         Token::Change(varying, "BYTEA", L"BYTEA", 5);
@@ -811,7 +816,7 @@ bool SqlParser::ParseBinaryType(Token *name)
                 }
                 else
                     // Convert to BYTEA in PostgreSQL
-                    if(_target == SQL_POSTGRESQL)
+                    if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                     {
                         Token::Change(name, "BYTEA", L"BYTEA", 5);
 
@@ -824,18 +829,18 @@ bool SqlParser::ParseBinaryType(Token *name)
                             Token::ChangeNoFormat(name, name, 1, name->len - 2);
         }
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
-	if(binary_in_braces)
-	{
-		DTYPE_STATS_V("BINARY", name)
-		DTYPE_DTL_STATS_ST("BINARY", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(binary_in_braces)
+    {
+        DTYPE_STATS_V("BINARY", name)
+        DTYPE_DTL_STATS_ST("BINARY", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -849,7 +854,7 @@ bool SqlParser::ParseBinaryDoubleType(Token *name)
     if(name->Compare("BINARY_DOUBLE", L"BINARY_DOUBLE", 13) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Convert to DOUBLE in MySQL
     if(Target(SQL_MARIADB, SQL_MYSQL))
@@ -859,7 +864,7 @@ bool SqlParser::ParseBinaryDoubleType(Token *name)
         if(_target != SQL_ORACLE)
             Token::Change(name, "DOUBLE PRECISION", L"DOUBLE PRECISION", 16);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -875,7 +880,7 @@ bool SqlParser::ParseBinaryFloatType(Token *name)
     if(name->Compare("BINARY_FLOAT", L"BINARY_FLOAT", 12) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Convert to FLOAT in MySQL
     if(Target(SQL_MARIADB, SQL_MYSQL))
@@ -885,7 +890,7 @@ bool SqlParser::ParseBinaryFloatType(Token *name)
         if(_target != SQL_ORACLE)
             Token::Change(name, "REAL", L"REAL", 4);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -902,7 +907,7 @@ bool SqlParser::ParseBitType(Token *name)
     bool bit = false;
     bool bit_in_braces = false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(name->Compare("BIT", L"BIT", 3) == true)
         bit = true;
@@ -928,7 +933,7 @@ bool SqlParser::ParseBitType(Token *name)
     }
 
     // Calculating RAW and BINARY size in bytes
-    if(open != NULL && Target(SQL_MARIADB, SQL_MYSQL, SQL_POSTGRESQL, SQL_SYBASE_ASA) == false)
+    if(open != NULL && Target(SQL_MARIADB, SQL_MYSQL, SQL_POSTGRESQL, SQL_OPENGAUSS, SQL_SYBASE_ASA) == false)
     {
         int size;
         int rem;
@@ -958,7 +963,7 @@ bool SqlParser::ParseBitType(Token *name)
             if(open == NULL)
             {
                 // BIT VARYING is unlimited by default in PostgreSQL
-                if(_source == SQL_POSTGRESQL)
+                if(_source == SQL_POSTGRESQL || _source == SQL_OPENGAUSS)
                     Append(varying, "(2000)", L"(2000)", 6);
                 else
                     // BIT VARYING is 1 bit by default in Sybase ASA
@@ -990,7 +995,7 @@ bool SqlParser::ParseBitType(Token *name)
         if(_target == SQL_ORACLE)
         {
             // In MySQL and PostgreSQL BIT is a bit array type
-            if(Source(SQL_MYSQL, SQL_POSTGRESQL) == true)
+            if(Source(SQL_MYSQL, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
             {
                 Token::Change(name, "RAW", L"RAW", 3);
 
@@ -1011,7 +1016,7 @@ bool SqlParser::ParseBitType(Token *name)
         }
         else
         // Convert to BOOLEAN in PostgreSQL
-        if(_target == SQL_POSTGRESQL && _source != SQL_POSTGRESQL)
+        if((_target == SQL_POSTGRESQL && _source != SQL_POSTGRESQL) || (_target == SQL_OPENGAUSS && _source != SQL_OPENGAUSS))
             Token::Change(name, "BOOLEAN", L"BOOLEAN", 7);
         else
         // Convert to TINYINT in MySQL
@@ -1027,7 +1032,7 @@ bool SqlParser::ParseBitType(Token *name)
             Token::ChangeNoFormat(name, name, 1, name->len - 2);
     }
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
     return true;
 }
@@ -1041,9 +1046,9 @@ bool SqlParser::ParseBlobType(Token *name)
     if(name->Compare("BLOB", L"BLOB", 4) == false)
         return false;
 
-	STATS_DECL
-	STATS_ITM_DECL 
-	STATS_SET_DESC(SQL_DATATYPE_BLOB_DESC)
+    STATS_DECL
+    STATS_ITM_DECL 
+    STATS_SET_DESC(SQL_DATATYPE_BLOB_DESC)
 
     Token *open = GetNextCharToken('(', L'(');
 
@@ -1078,16 +1083,16 @@ bool SqlParser::ParseBlobType(Token *name)
     else
     // Convert to LONGBLOB in MySQL
     if(Target(SQL_MARIADB, SQL_MARIADB_ORA, SQL_MYSQL) && _source != SQL_MYSQL)
-		Token::Change(name, "LONGBLOB", L"LONGBLOB", 8);
+        Token::Change(name, "LONGBLOB", L"LONGBLOB", 8);
     else
     // Convert to BYTEA in PostgreSQL, Greenplum
-    if(Target(SQL_POSTGRESQL, SQL_GREENPLUM) == true)
-		Token::Change(name, "BYTEA", L"BYTEA", 5);
+    if(Target(SQL_POSTGRESQL, SQL_OPENGAUSS, SQL_GREENPLUM) == true)
+        Token::Change(name, "BYTEA", L"BYTEA", 5);
 
-	STATS_SET_CONV_OK(true)
-	STATS_SET_COMPLEXITY(true, STATS_CONV_LOW)
+    STATS_SET_CONV_OK(true)
+    STATS_SET_COMPLEXITY(true, STATS_CONV_LOW)
 
-	DTYPE_STATS(name)
+    DTYPE_STATS(name)
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -1104,17 +1109,17 @@ bool SqlParser::ParseBooleanType(Token *name)
     if(name->Compare("BOOLEAN", L"BOOLEAN", 7) == false && name->Compare("BOOL", L"BOOL", 4) == false)
         return false;
 
-	STATS_DECL
-	STATS_SET_DESC(SQL_DATATYPE_BOOLEAN_DESC)
+    STATS_DECL
+    STATS_SET_DESC(SQL_DATATYPE_BOOLEAN_DESC)
 
-	STATS_DTL_DECL
-	STATS_ITM_DECL 
+    STATS_DTL_DECL
+    STATS_ITM_DECL 
 
     if(_target == SQL_MARIADB_ORA)
-	{
-		STATS_DTL_CONV_NO_NEED(Target(SQL_MARIADB_ORA))
-		STATS_ITM_CONV_NO_NEED    
-	}
+    {
+        STATS_DTL_CONV_NO_NEED(Target(SQL_MARIADB_ORA))
+        STATS_ITM_CONV_NO_NEED    
+    }
     else
     // Convert to CHAR(1) in Oracle
     if(_target == SQL_ORACLE)
@@ -1124,7 +1129,7 @@ bool SqlParser::ParseBooleanType(Token *name)
     if(_target == SQL_SQL_SERVER)
         Token::Change(name, "BIT", L"BIT", 3);
 
-	STATS_UPDATE_STATUS
+    STATS_UPDATE_STATUS
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -1137,7 +1142,7 @@ bool SqlParser::ParseByteaType(Token *name)
     if(name == NULL)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(name->Compare("BYTEA", L"BYTEA", 5) == false)
         return false;
@@ -1146,7 +1151,7 @@ bool SqlParser::ParseByteaType(Token *name)
     if(_target == SQL_ORACLE)
         Token::Change(name, "BLOB", L"BLOB", 4);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -1162,7 +1167,7 @@ bool SqlParser::ParseByteType(Token *name)
     if(name->Compare("BYTE", L"BYTE", 4) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -1199,12 +1204,12 @@ bool SqlParser::ParseByteType(Token *name)
             }
             else
                 // Convert to BYTEA in PostgreSQL and Greenplum
-                if(_target == SQL_POSTGRESQL || _target == SQL_GREENPLUM)
+                if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS ||_target == SQL_GREENPLUM)
                 {
                     Token::Change(name, "BYTEA", L"BYTEA", 5);
                 }
 
-				STATS_ITM_DECL 
+                STATS_ITM_DECL 
                 DTYPE_DTL_STATS_L(name)
 
                 return true;
@@ -1219,7 +1224,7 @@ bool SqlParser::ParseByteintType(Token *name)
     if(name->Compare("BYTEINT", L"BYTEINT", 7) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(_target == SQL_ORACLE)
         Token::Change(name, "NUMBER(3)", L"NUMBER(3)", 9);
@@ -1229,7 +1234,7 @@ bool SqlParser::ParseByteintType(Token *name)
     name->data_type = TOKEN_DT_NUMBER;
     name->data_subtype = TOKEN_DT2_INT;
         
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -1245,7 +1250,7 @@ bool SqlParser::ParseCharacterType(Token *name, int clause_scope)
     bool character = false;
     bool character_in_braces = false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(name->Compare("CHARACTER", L"CHARACTER", 9) == true)
         character = true;
@@ -1336,7 +1341,7 @@ bool SqlParser::ParseCharacterType(Token *name, int clause_scope)
         }
         else
             // Change to TEXT in PostgreSQL
-            if(_target == SQL_POSTGRESQL)
+            if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
             {
                 Token::Remove(name);
                 Token::Change(varying, "TEXT", L"TEXT", 4);
@@ -1363,7 +1368,7 @@ bool SqlParser::ParseCharacterType(Token *name, int clause_scope)
                 }
                 else
                     // Convert DB2 CHARACTER VARYING FOR BIT DATA to BYTEA in PostgreSQL
-                    if(_target == SQL_POSTGRESQL)
+                    if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                     {
                         Token::Remove(name);
                         Token::Change(varying, "BYTEA", L"BYTEA", 5);
@@ -1392,7 +1397,7 @@ bool SqlParser::ParseCharacterType(Token *name, int clause_scope)
                         Token::Change(name, "BINARY", L"BINARY", 6);
                     else
                         // Convert DB2 CHARACTER FOR BIT DATA to BYTEA in PostgreSQL
-                        if(_target == SQL_POSTGRESQL)
+                        if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                         {
                             Token::Change(name, "BYTEA", L"BYTEA", 5);
 
@@ -1414,7 +1419,7 @@ bool SqlParser::ParseCharacterType(Token *name, int clause_scope)
                         if(open == NULL)
                         {
                             // PostgreSQL allows not specify size
-                            if(_source == SQL_POSTGRESQL)
+                            if(_source == SQL_POSTGRESQL || _source == SQL_OPENGAUSS)
                                 Append(varying, "(4000)", L"(4000)", 6);
                             else
                                 // Size is 1 by default in SQL Server, Informix, Sybase ASE, Sybase ASA
@@ -1424,7 +1429,8 @@ bool SqlParser::ParseCharacterType(Token *name, int clause_scope)
                     }
                     else
                         // VARCHAR is unlimited by default in PostgreSQL
-                        if(_target == SQL_POSTGRESQL && open == NULL && _source != SQL_POSTGRESQL)
+                        if((_target == SQL_POSTGRESQL && open == NULL && _source != SQL_POSTGRESQL) || 
+                           (_target == SQL_OPENGAUSS && open == NULL && _source != SQL_OPENGAUSS))
                             Append(varying, "(1)", L"(1)", 3);
                         else
                             // Size is mandatory in MySQL
@@ -1458,7 +1464,7 @@ bool SqlParser::ParseCharacterType(Token *name, int clause_scope)
         (clause_scope == SQL_SCOPE_FUNC_PARAMS || clause_scope == SQL_SCOPE_PROC_PARAMS))
         Token::Remove(open, close);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -1470,11 +1476,11 @@ bool SqlParser::ParseCharType(Token *name, int clause_scope)
     if(name == NULL)
         return false;
 
-	STATS_DECL
-	STATS_SET_DESC(SQL_DATATYPE_CHAR_DESC)
+    STATS_DECL
+    STATS_SET_DESC(SQL_DATATYPE_CHAR_DESC)
 
-	STATS_DTL_DECL
-	STATS_ITM_DECL
+    STATS_DTL_DECL
+    STATS_ITM_DECL
 
     bool char_ = false;
     bool char_in_braces = false;
@@ -1576,7 +1582,7 @@ bool SqlParser::ParseCharType(Token *name, int clause_scope)
         }
         else
         // Change to TEXT in PostgreSQL
-        if(_target == SQL_POSTGRESQL)
+        if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
         {
             Token::Remove(name);
             Token::Change(varying, "TEXT", L"TEXT", 4);
@@ -1603,7 +1609,7 @@ bool SqlParser::ParseCharType(Token *name, int clause_scope)
         }
         else
         // Convert DB2 CHAR VARYING FOR BIT DATA to BYTEA in PostgreSQL
-        if(_target == SQL_POSTGRESQL)
+        if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
         {
             Token::Remove(name);
             Token::Change(varying, "BYTEA", L"BYTEA", 5);
@@ -1632,7 +1638,7 @@ bool SqlParser::ParseCharType(Token *name, int clause_scope)
             Token::Change(name, "BINARY", L"BINARY", 6);
         else
         // Convert DB2 CHAR FOR BIT DATA to BYTEA in PostgreSQL
-        if(_target == SQL_POSTGRESQL)
+        if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
         {
             Token::Change(name, "BYTEA", L"BYTEA", 5);
 
@@ -1654,7 +1660,7 @@ bool SqlParser::ParseCharType(Token *name, int clause_scope)
             if(open == NULL)
             {
                 // PostgreSQL allows not specify size
-                if(_source == SQL_POSTGRESQL)
+                if(_source == SQL_POSTGRESQL || _source == SQL_OPENGAUSS)
                     Append(varying, "(4000)", L"(4000)", 6);
                 else
                 // Size is 1 by default in SQL Server, Informix, Sybase ASE, Sybase ASA
@@ -1664,7 +1670,8 @@ bool SqlParser::ParseCharType(Token *name, int clause_scope)
         }
         else
         // VARCHAR is unlimited by default in PostgreSQL
-        if(_target == SQL_POSTGRESQL && open == NULL && _source != SQL_POSTGRESQL)
+        if((_target == SQL_POSTGRESQL && open == NULL && _source != SQL_POSTGRESQL) ||
+           (_target == SQL_OPENGAUSS && open == NULL && _source != SQL_OPENGAUSS))
             Append(varying, "(1)", L"(1)", 3);
         else
         // Size is mandatory in MySQL
@@ -1695,35 +1702,35 @@ bool SqlParser::ParseCharType(Token *name, int clause_scope)
         if(char_in_braces == true)
             Token::ChangeNoFormat(name, name, 1, name->len - 2);
         else
-		{
+        {
             STATS_ITM_CONV_NO_NEED
             STATS_DTL_CONV_NO_NEED(true)
-		}
+        }
     }
     else
     // Remove [] for other databases
     if(_target != SQL_SQL_SERVER && char_in_braces == true)
         Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_UPDATE_STATUS
+    STATS_UPDATE_STATUS
 
-	// Collapse reporting items for small CHARs
-	if(size != NULL && size->GetInt() <= 128 && si.conv_status == STATS_CONV_NO_NEED)
-	{
-		DTYPE_DTL_STATS_ST("CHAR(<=128)", NULL);
-	}
-	else
-	{
-		if(char_in_braces)
-			DTYPE_DTL_STATS_ST("CHAR", NULL)
-		else
-			DTYPE_DTL_STATS_L(name)
-	}
+    // Collapse reporting items for small CHARs
+    if(size != NULL && size->GetInt() <= 128 && si.conv_status == STATS_CONV_NO_NEED)
+    {
+        DTYPE_DTL_STATS_ST("CHAR(<=128)", NULL);
+    }
+    else
+    {
+        if(char_in_braces)
+            DTYPE_DTL_STATS_ST("CHAR", NULL)
+        else
+            DTYPE_DTL_STATS_L(name)
+    }
     
-	if(char_in_braces)
-		DTYPE_STATS_V("CHAR", name)
-	else
-		DTYPE_STATS(name)
+    if(char_in_braces)
+        DTYPE_STATS_V("CHAR", name)
+    else
+        DTYPE_STATS(name)
 
     return true;
 }
@@ -1737,11 +1744,11 @@ bool SqlParser::ParseClobType(Token *name)
     if(name->Compare("CLOB", L"CLOB", 4) == false)
         return false;
 
-	STATS_DECL
-	STATS_SET_DESC(SQL_DATATYPE_CLOB_DESC)
+    STATS_DECL
+    STATS_SET_DESC(SQL_DATATYPE_CLOB_DESC)
 
-	STATS_DTL_DECL
-	STATS_ITM_DECL 
+    STATS_DTL_DECL
+    STATS_ITM_DECL 
 
     Token *open = GetNextCharToken('(', L'(');
 
@@ -1779,11 +1786,11 @@ bool SqlParser::ParseClobType(Token *name)
         Token::Change(name, "LONGTEXT", L"LONGTEXT", 8);
     else
     // Convert to TEXT in PostgreSQL, Greenplum
-    if(Target(SQL_POSTGRESQL, SQL_GREENPLUM) == true)
+    if(Target(SQL_POSTGRESQL, SQL_GREENPLUM, SQL_OPENGAUSS) == true)
         Token::Change(name, "TEXT", L"TEXT", 4);
 
-	STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
-	STATS_UPDATE_STATUS
+    STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
+    STATS_UPDATE_STATUS
 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_L(name)
@@ -1800,14 +1807,14 @@ bool SqlParser::ParseCurDoubleType(Token *name)
     if(!TOKEN_CMP(name, "CURDOUBLE"))
         return false;
 
-	STATS_DECL
-	STATS_ITM_DECL 
+    STATS_DECL
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_L(name)
 
-	Token *open = TOKEN_GETNEXT('(');
-	Token *close = NULL;
-	    
+    Token *open = TOKEN_GETNEXT('(');
+    Token *close = NULL;
+        
     if(open != NULL)
     {
         /*Token *num */ (void) GetNextNumberToken();
@@ -1816,12 +1823,12 @@ bool SqlParser::ParseCurDoubleType(Token *name)
 
     // Convert to VARCHAR(max) in SQL Server
     if(_target == SQL_SQL_SERVER)
-	{
+    {
         TOKEN_CHANGE(name, "FLOAT");
 
-		if(open != NULL)
-			Token::Remove(open, close);
-	}
+        if(open != NULL)
+            Token::Remove(open, close);
+    }
     
     return true;
 }
@@ -1850,7 +1857,7 @@ bool SqlParser::ParseDatetimeType(Token *name)
     if(datetime == false && datetime_in_braces == false && datetime_in_quotes == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Informix DATETIME can include start and end field
     Token *first_unit = GetNextToken();
@@ -1942,7 +1949,7 @@ bool SqlParser::ParseDatetimeType(Token *name)
     }
 
     // Convert to TIMESTAMP in Oracle, PostgreSQL
-    if(Target(SQL_ORACLE, SQL_POSTGRESQL) == true)
+    if(Target(SQL_ORACLE, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
     {
         if(_source != SQL_INFORMIX)
             Token::Change(name, "TIMESTAMP", L"TIMESTAMP", 9);
@@ -1982,7 +1989,7 @@ bool SqlParser::ParseDatetimeType(Token *name)
                     Token::Remove(first_unit, second_unit);
                 }
             }
-        }		
+        }        
     }
     else
     // Convert to DATETIME2(6) in SQL Server
@@ -2035,18 +2042,18 @@ bool SqlParser::ParseDatetimeType(Token *name)
     name->data_type = TOKEN_DT_DATETIME;
     name->data_subtype = TOKEN_DT2_DATETIME;
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
-	if(datetime_in_braces)
-	{
-		DTYPE_STATS_V("DATETIME", name)
-		DTYPE_DTL_STATS_ST("DATETIME", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(datetime_in_braces)
+    {
+        DTYPE_STATS_V("DATETIME", name)
+        DTYPE_DTL_STATS_ST("DATETIME", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -2070,7 +2077,7 @@ bool SqlParser::ParseDatetime2Type(Token *name)
     if(datetime2 == false && datetime2_in_braces == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     Token *open = GetNextCharToken('(', L'(');
     Token *fraction = NULL;
@@ -2099,7 +2106,7 @@ bool SqlParser::ParseDatetime2Type(Token *name)
     }
     else
     // Convert to TIMESTAMP in PostgreSQL, Redshift
-    if(Target(SQL_POSTGRESQL, SQL_REDSHIFT))
+    if(Target(SQL_POSTGRESQL, SQL_REDSHIFT, SQL_OPENGAUSS))
     {
         Token::Change(name, "TIMESTAMP", L"TIMESTAMP", 9);
 
@@ -2115,18 +2122,18 @@ bool SqlParser::ParseDatetime2Type(Token *name)
     if(_target != SQL_SQL_SERVER && datetime2_in_braces == true)
         Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
-	if(datetime2_in_braces)
-	{
-		DTYPE_STATS_V("DATETIME2", name)
-		DTYPE_DTL_STATS_ST("DATETIME2", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(datetime2_in_braces)
+    {
+        DTYPE_STATS_V("DATETIME2", name)
+        DTYPE_DTL_STATS_ST("DATETIME2", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -2150,7 +2157,7 @@ bool SqlParser::ParseDatetimeoffsetType(Token *name)
     if(datetimeoffset == false && datetimeoffset_in_braces == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     int fraction_int = 0;
 
@@ -2167,7 +2174,7 @@ bool SqlParser::ParseDatetimeoffsetType(Token *name)
     }
 
     // Convert to TIMESTAMP WITH TIME ZONE in Oracle
-    if(Target(SQL_ORACLE, SQL_POSTGRESQL) == true)
+    if(Target(SQL_ORACLE, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
     {
         Token::Change(name, "TIMESTAMP", L"TIMESTAMP", 9);
 
@@ -2212,18 +2219,18 @@ bool SqlParser::ParseDatetimeoffsetType(Token *name)
                 if(_target != SQL_SQL_SERVER && datetimeoffset_in_braces == true)
                     Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
-	if(datetimeoffset_in_braces)
-	{
-		DTYPE_STATS_V("DATETIMEOFFSET", name)
-		DTYPE_DTL_STATS_ST("DATETIMEOFFSET", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(datetimeoffset_in_braces)
+    {
+        DTYPE_STATS_V("DATETIMEOFFSET", name)
+        DTYPE_DTL_STATS_ST("DATETIMEOFFSET", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -2234,15 +2241,15 @@ bool SqlParser::ParseDateType(Token *name)
     if(name == NULL)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
-	if(_source != SQL_ORACLE)
-		STATS_SET_DESC(SQL_DATATYPE_DATE_DESC)
-	else
-		STATS_SET_DESC(SQL_DATATYPE_DATE_ORA_DESC)
+    if(_source != SQL_ORACLE)
+        STATS_SET_DESC(SQL_DATATYPE_DATE_DESC)
+    else
+        STATS_SET_DESC(SQL_DATATYPE_DATE_ORA_DESC)
 
-	STATS_DTL_DECL
-	STATS_ITM_DECL 
+    STATS_DTL_DECL
+    STATS_ITM_DECL 
 
     bool date = false;
     bool date_in_braces = false;
@@ -2262,14 +2269,14 @@ bool SqlParser::ParseDateType(Token *name)
     {
         if(Target(SQL_SQL_SERVER, SQL_MARIADB, SQL_MYSQL, SQL_SYBASE))
             Token::Change(name, "DATETIME", L"DATETIME", 8);
-		else
-		if(_target == SQL_MARIADB_ORA)
-		{
-			STATS_DTL_CONV_NO_NEED(true)
-			STATS_ITM_CONV_NO_NEED 
-		}
         else
-        if(Target(SQL_DB2, SQL_POSTGRESQL, SQL_GREENPLUM, SQL_ESGYNDB))
+        if(_target == SQL_MARIADB_ORA)
+        {
+            STATS_DTL_CONV_NO_NEED(true)
+            STATS_ITM_CONV_NO_NEED 
+        }
+        else
+        if(Target(SQL_DB2, SQL_POSTGRESQL, SQL_GREENPLUM, SQL_ESGYNDB, SQL_OPENGAUSS))
             Token::Change(name, "TIMESTAMP(0)", L"TIMESTAMP(0)", 12);
     }
     else
@@ -2277,21 +2284,21 @@ bool SqlParser::ParseDateType(Token *name)
     if(_target != SQL_SQL_SERVER && date_in_braces == true)
         Token::ChangeNoFormat(name, name, 1, name->len - 2);
         
-	name->data_type = TOKEN_DT_DATETIME;
-	name->data_subtype = (_source == SQL_ORACLE) ? TOKEN_DT2_DATETIME_SEC : TOKEN_DT2_DATE;
+    name->data_type = TOKEN_DT_DATETIME;
+    name->data_subtype = (_source == SQL_ORACLE) ? TOKEN_DT2_DATETIME_SEC : TOKEN_DT2_DATE;
 
-	STATS_UPDATE_STATUS
+    STATS_UPDATE_STATUS
 
-	if(date_in_braces)
-	{
-		DTYPE_STATS_V("DATE", name)
-		DTYPE_DTL_STATS_ST("DATE", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(date_in_braces)
+    {
+        DTYPE_STATS_V("DATE", name)
+        DTYPE_DTL_STATS_ST("DATE", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -2305,7 +2312,7 @@ bool SqlParser::ParseDbclobType(Token *name)
     if(name->Compare("DBCLOB", L"DBCLOB", 6) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -2345,10 +2352,10 @@ bool SqlParser::ParseDbclobType(Token *name)
         }
         else
             // Convert to TEXT in PostgreSQL
-            if(_target == SQL_POSTGRESQL)
+            if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                 Token::Change(name, "TEXT", L"TEXT", 4);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -2363,7 +2370,7 @@ bool SqlParser::ParseDecfloatType(Token *name)
     if(name->Compare("DECFLOAT", L"DECFLOAT", 8) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -2387,7 +2394,7 @@ bool SqlParser::ParseDecfloatType(Token *name)
     }
     else
         // Convert to FLOAT in SQL Server, PostgreSQL
-        if(Target(SQL_SQL_SERVER, SQL_POSTGRESQL) == true)
+        if(Target(SQL_SQL_SERVER, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
         {
             Token::Change(name, "FLOAT", L"FLOAT", 5);
 
@@ -2395,7 +2402,7 @@ bool SqlParser::ParseDecfloatType(Token *name)
                 Token::Remove(open, close);
         }
 
-		STATS_ITM_DECL 
+        STATS_ITM_DECL 
         DTYPE_DTL_STATS_L(name)
 
         return true;
@@ -2407,11 +2414,11 @@ bool SqlParser::ParseDecimalType(Token *name, int clause_scope)
     if(name == NULL)
         return false;
 
-	STATS_DECL
-	STATS_SET_DESC(SQL_DATATYPE_DECIMAL_DESC)
+    STATS_DECL
+    STATS_SET_DESC(SQL_DATATYPE_DECIMAL_DESC)
 
-	STATS_DTL_DECL
-	STATS_ITM_DECL
+    STATS_DTL_DECL
+    STATS_ITM_DECL
 
     bool decimal = false;
     bool decimal_in_braces = false;
@@ -2526,23 +2533,23 @@ bool SqlParser::ParseDecimalType(Token *name, int clause_scope)
     }
 
     if(!conv)
-	{
-		STATS_DTL_CONV_NO_NEED(true)
+    {
+        STATS_DTL_CONV_NO_NEED(true)
         STATS_ITM_CONV_NO_NEED
-	}
+    }
 
-	STATS_UPDATE_STATUS
+    STATS_UPDATE_STATUS
 
-	if(decimal_in_braces)
-	{
-		DTYPE_STATS_V("DECIMAL", name)
-		DTYPE_DTL_STATS_ST("DECIMAL", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(decimal_in_braces)
+    {
+        DTYPE_STATS_V("DECIMAL", name)
+        DTYPE_DTL_STATS_ST("DECIMAL", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -2556,9 +2563,9 @@ bool SqlParser::ParseDoubleType(Token *name)
     if(name->Compare("DOUBLE", L"DOUBLE", 6) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
-	STATS_ITM_DECL
+    STATS_ITM_DECL
     DTYPE_STATS(name)
 
     // DB2 and MySQL can omit PRECISION keyword
@@ -2612,7 +2619,7 @@ bool SqlParser::ParseDoubleType(Token *name)
     }
 
     // Append PRECISION keyword in PostgreSQL
-    if(_target == SQL_POSTGRESQL)
+    if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
     {
         if(prec == NULL)
         {
@@ -2638,7 +2645,7 @@ bool SqlParser::ParseFixedType(Token *name)
     if(name->Compare("FIXED", L"FIXED", 5) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -2648,7 +2655,7 @@ bool SqlParser::ParseFixedType(Token *name)
     if(open != NULL)
     {
         /*Token *precision */ (void) GetNextNumberToken();
-        Token *comma = GetNextCharToken(',', L',');	
+        Token *comma = GetNextCharToken(',', L',');    
 
         if(comma != NULL)
             /*Token *scale */ (void) GetNextNumberToken(); 
@@ -2673,7 +2680,7 @@ bool SqlParser::ParseFixedType(Token *name)
                 Append(name, "(10,0)", L"(10,0)", 6);
         }
 
-		STATS_ITM_DECL 
+        STATS_ITM_DECL 
         DTYPE_DTL_STATS_L(name)
 
         return true;
@@ -2699,10 +2706,10 @@ bool SqlParser::ParseFloatType(Token *name)
     if(float_ == false && float_in_braces == false)
         return false;
 
-	STATS_DECL
-	STATS_SET_DESC(SQL_DATATYPE_FLOAT_DESC)
+    STATS_DECL
+    STATS_SET_DESC(SQL_DATATYPE_FLOAT_DESC)
 
-	STATS_ITM_DECL
+    STATS_ITM_DECL
 
     Token *open = GetNextCharToken('(', L'(');
     Token *close = NULL;
@@ -2757,7 +2764,8 @@ bool SqlParser::ParseFloatType(Token *name)
     }
     else
     // Convert to DOUBLE PRECISION in PostgreSQL
-    if(_target == SQL_POSTGRESQL && _source != SQL_POSTGRESQL)
+    if((_target == SQL_POSTGRESQL && _source != SQL_POSTGRESQL) ||
+       (_target == SQL_OPENGAUSS && _source != SQL_OPENGAUSS))
     {
         Token::Change(name, "DOUBLE PRECISION", L"DOUBLE PRECISION", 16);
         conv = true;
@@ -2774,21 +2782,21 @@ bool SqlParser::ParseFloatType(Token *name)
     }
 
     if(!conv)
-	{
-		STATS_SET_CONV_NO_NEED(true)
+    {
+        STATS_SET_CONV_NO_NEED(true)
         STATS_ITM_CONV_NO_NEED
-	}
+    }
 
     if(float_in_braces)
-	{
-		DTYPE_STATS_V("FLOAT", name)
-		DTYPE_DTL_STATS_ST("FLOAT", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    {
+        DTYPE_STATS_V("FLOAT", name)
+        DTYPE_DTL_STATS_ST("FLOAT", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -2802,7 +2810,7 @@ bool SqlParser::ParseFloat4Type(Token *name)
     if(name->Compare("FLOAT4", L"FLOAT4", 6) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -2837,7 +2845,7 @@ bool SqlParser::ParseFloat4Type(Token *name)
         if(_target == SQL_SQL_SERVER)
             Token::Change(name, "FLOAT", L"FLOAT", 5);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -2852,7 +2860,7 @@ bool SqlParser::ParseFloat8Type(Token *name)
     if(name->Compare("FLOAT8", L"FLOAT8", 6) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -2879,7 +2887,7 @@ bool SqlParser::ParseFloat8Type(Token *name)
         if(_target == SQL_SQL_SERVER)
             Token::Change(name, "FLOAT", L"FLOAT", 5);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -2894,7 +2902,7 @@ bool SqlParser::ParseGraphicType(Token *name)
     if(name->Compare("GRAPHIC", L"GRAPHIC", 7) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -2912,10 +2920,10 @@ bool SqlParser::ParseGraphicType(Token *name)
         Token::Change(name, "NCHAR", L"NCHAR", 5);
     else
         // Convert to CHAR in PostgreSQL
-        if(_target == SQL_POSTGRESQL)
+        if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
             Token::Change(name, "CHAR", L"CHAR", 4);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -2931,7 +2939,7 @@ bool SqlParser::ParseImageType(Token *name)
     bool image_in_braces = false;
     bool image_in_quotes = false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(name->Compare("IMAGE", L"IMAGE", 5) == true)
         image = true;
@@ -2963,7 +2971,7 @@ bool SqlParser::ParseImageType(Token *name)
                 Token::Change(name, "LONGBLOB", L"LONGBLOB", 8);
             else
                 // Convert to BYTEA in PostgreSQL
-                if(_target == SQL_POSTGRESQL)
+                if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                     Token::Change(name, "BYTEA", L"BYTEA", 5);
                 else
                     // Remove [] for other databases
@@ -2974,18 +2982,18 @@ bool SqlParser::ParseImageType(Token *name)
                         if(_target != SQL_SYBASE_ASA && image_in_quotes == true)
                             Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
-	if(image_in_braces)
-	{
-		DTYPE_STATS_V("IMAGE", name)
-		DTYPE_DTL_STATS_ST("IMAGE", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(image_in_braces)
+    {
+        DTYPE_STATS_V("IMAGE", name)
+        DTYPE_DTL_STATS_ST("IMAGE", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -2999,9 +3007,9 @@ bool SqlParser::ParseIntervalType(Token *name)
     if(name->Compare("INTERVAL", L"INTERVAL", 8) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
- 	STATS_ITM_DECL
+     STATS_ITM_DECL
     DTYPE_STATS(name)
 
     bool start = false;
@@ -3108,7 +3116,7 @@ bool SqlParser::ParseIntervalType(Token *name)
             Token::Change(first_unit, "NUMBER", L"NUMBER", 6);
 
             if(open == NULL)
-            {		
+            {        
                 if(open2 != NULL)
                     Prepend(scale, "5,", L"5,", 2);
                 else
@@ -3139,7 +3147,8 @@ bool SqlParser::ParseIntervalType(Token *name)
         STATS_ITM_CONV_ERROR 
     }
     else
-    if(_target == SQL_POSTGRESQL && _source != SQL_POSTGRESQL)
+    if((_target == SQL_POSTGRESQL && _source != SQL_POSTGRESQL) ||
+       (_target == SQL_OPENGAUSS && _source != SQL_OPENGAUSS))
     {
         // Remove precision for PostgreSQL
         if(open != NULL)
@@ -3197,11 +3206,11 @@ bool SqlParser::ParseIntType(Token *name, int clause_scope)
     if(int_ == false && int_in_braces == false)
         return false;
 
-	STATS_DECL
-	STATS_SET_DESC(SQL_DATATYPE_INT_DESC)
+    STATS_DECL
+    STATS_SET_DESC(SQL_DATATYPE_INT_DESC)
 
-	STATS_DTL_DECL
-	STATS_ITM_DECL
+    STATS_DTL_DECL
+    STATS_ITM_DECL
 
     Token *open = GetNextCharToken('(', L'(');
 
@@ -3219,14 +3228,14 @@ bool SqlParser::ParseIntType(Token *name, int clause_scope)
         }
     }
 
-	// Use Integer class instead of primitive int type in Java to handle NULLs
-	if(_target_app == APP_JAVA && (clause_scope == SQL_SCOPE_FUNC_PARAMS || clause_scope == SQL_SCOPE_PROC_PARAMS ||
-			clause_scope == SQL_SCOPE_VAR_DECL))
-	{
-		TOKEN_CHANGE_NOFMT(name, "Integer");
-		conv = true;
-	}
-	else
+    // Use Integer class instead of primitive int type in Java to handle NULLs
+    if(_target_app == APP_JAVA && (clause_scope == SQL_SCOPE_FUNC_PARAMS || clause_scope == SQL_SCOPE_PROC_PARAMS ||
+            clause_scope == SQL_SCOPE_VAR_DECL))
+    {
+        TOKEN_CHANGE_NOFMT(name, "Integer");
+        conv = true;
+    }
+    else
     // Convert to NUMBER(10) in Oracle
     if(_target == SQL_ORACLE && _source != SQL_ORACLE)
     {
@@ -3257,26 +3266,26 @@ bool SqlParser::ParseIntType(Token *name, int clause_scope)
     }
 
     if(!conv)
-	{
-		STATS_DTL_CONV_NO_NEED(true)
+    {
+        STATS_DTL_CONV_NO_NEED(true)
         STATS_ITM_CONV_NO_NEED
-	}
+    }
 
-	name->data_type = TOKEN_DT_NUMBER;
-	name->data_subtype = TOKEN_DT2_INT;
+    name->data_type = TOKEN_DT_NUMBER;
+    name->data_subtype = TOKEN_DT2_INT;
 
-	STATS_UPDATE_STATUS
+    STATS_UPDATE_STATUS
 
-	if(int_in_braces)
-	{
-		DTYPE_STATS_V("INT", name)
-		DTYPE_DTL_STATS_ST("INT", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(int_in_braces)
+    {
+        DTYPE_STATS_V("INT", name)
+        DTYPE_DTL_STATS_ST("INT", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -3290,7 +3299,7 @@ bool SqlParser::ParseInt1Type(Token *name)
     if(name->Compare("INT1", L"INT1", 4) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -3315,7 +3324,7 @@ bool SqlParser::ParseInt1Type(Token *name)
         if(_target == SQL_SQL_SERVER)
             Token::Change(name, "SMALLINT", L"SMALLINT", 8);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -3330,7 +3339,7 @@ bool SqlParser::ParseInt2Type(Token *name)
     if(name->Compare("INT2", L"INT2", 4) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -3355,7 +3364,7 @@ bool SqlParser::ParseInt2Type(Token *name)
         if(_target == SQL_SQL_SERVER)
             Token::Change(name, "SMALLINT", L"SMALLINT", 8);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -3370,7 +3379,7 @@ bool SqlParser::ParseInt3Type(Token *name)
     if(name->Compare("INT3", L"INT3", 4) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -3395,7 +3404,7 @@ bool SqlParser::ParseInt3Type(Token *name)
         if(_target == SQL_SQL_SERVER)
             Token::Change(name, "INT", L"INT", 3);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -3410,7 +3419,7 @@ bool SqlParser::ParseInt4Type(Token *name)
     if(name->Compare("INT4", L"INT4", 4) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -3435,7 +3444,7 @@ bool SqlParser::ParseInt4Type(Token *name)
         if(_target == SQL_SQL_SERVER)
             Token::Change(name, "INT", L"INT", 3);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -3450,7 +3459,7 @@ bool SqlParser::ParseInt8Type(Token *name)
     if(name->Compare("INT8", L"INT8", 4) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -3475,7 +3484,7 @@ bool SqlParser::ParseInt8Type(Token *name)
         if(_target == SQL_SQL_SERVER)
             Token::Change(name, "BIGINT", L"BIGINT", 6);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -3497,11 +3506,11 @@ bool SqlParser::ParseLongType(Token *name)
     if(name->Compare("LONG", L"LONG", 4) == false)
         return false;
 
-	STATS_DECL
-	STATS_DTL_DECL
-	STATS_ITM_DECL 
+    STATS_DECL
+    STATS_DTL_DECL
+    STATS_ITM_DECL 
 
-	bool conv = false;
+    bool conv = false;
 
     Token *unit = GetNextToken();
 
@@ -3546,11 +3555,11 @@ bool SqlParser::ParseLongType(Token *name)
     // LONG in Oracle
     if(unit == NULL)
     {
-		STATS_SET_DESC(SQL_DATATYPE_LONG_DESC)
+        STATS_SET_DESC(SQL_DATATYPE_LONG_DESC)
 
-		// Convert to CLOB in Oracle
+        // Convert to CLOB in Oracle
         if(_target == SQL_ORACLE && _source != SQL_ORACLE)
-			Token::Change(name, "CLOB", L"CLOB", 4);
+            Token::Change(name, "CLOB", L"CLOB", 4);
         else
         // Convert to VARCHAR(max) in SQL Server
         if(_target == SQL_SQL_SERVER)
@@ -3564,10 +3573,10 @@ bool SqlParser::ParseLongType(Token *name)
             Token::Change(name, "LONGTEXT", L"LONGTEXT", 8);
         else
         // Convert to TEXT in PostgreSQL, Greenplum
-        if(Target(SQL_POSTGRESQL, SQL_GREENPLUM) == true)
+        if(Target(SQL_POSTGRESQL, SQL_OPENGAUSS, SQL_GREENPLUM) == true)
             Token::Change(name, "TEXT", L"TEXT", 4);
 
-		conv = true;
+        conv = true;
     }
     else
     // LONG BINARY in Sybase ASA
@@ -3589,7 +3598,7 @@ bool SqlParser::ParseLongType(Token *name)
             }
             else
                 // Convert to BYTEA in PostgreSQL
-                if(_target == SQL_POSTGRESQL)
+                if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                 {
                     Token::Remove(name);
                     Token::Change(unit, "BYTEA", L"BYTEA", 5);
@@ -3615,7 +3624,7 @@ bool SqlParser::ParseLongType(Token *name)
             }
             else
                 // Convert to BYTEA in PostgreSQL
-                if(_target == SQL_POSTGRESQL)
+                if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                 {
                     Token::Remove(name, unit);
                     Token::Change(varying, "BYTEA", L"BYTEA", 5);
@@ -3641,7 +3650,7 @@ bool SqlParser::ParseLongType(Token *name)
             }
             else
                 // Convert to TEXT in PostgreSQL
-                if(_target == SQL_POSTGRESQL)
+                if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                 {
                     Token::Remove(name);
                     Token::Change(unit, "TEXT", L"TEXT", 4);
@@ -3651,14 +3660,14 @@ bool SqlParser::ParseLongType(Token *name)
     // LONG RAW in Oracle
     if(raw != NULL)
     {
-		STATS_SET_DESC(SQL_DATATYPE_LONG_RAW_DESC)
+        STATS_SET_DESC(SQL_DATATYPE_LONG_RAW_DESC)
 
-		Token *open = TOKEN_GETNEXT('(');
+        Token *open = TOKEN_GETNEXT('(');
 
-		// Size is supported in LONG RAW(n) in PL/SQL, but not in CREATE TABLE DDL in Oracle
-		Token *size = GetNext(open);
+        // Size is supported in LONG RAW(n) in PL/SQL, but not in CREATE TABLE DDL in Oracle
+        Token *size = GetNext(open);
 
-		Token *close = TOKEN_GETNEXTP(size, ')');
+        Token *close = TOKEN_GETNEXTP(size, ')');
 
         // Convert to VARBINARY(max) in SQL Server
         if(_target == SQL_SQL_SERVER)
@@ -3667,27 +3676,27 @@ bool SqlParser::ParseLongType(Token *name)
             Token::Change(unit, "VARBINARY", L"VARBINARY", 9);
             AppendNoFormat(unit, "(max)", L"(max)", 5);
 
-			conv = true;
+            conv = true;
         }
         else
         // Convert to LONGBLOB in MySQL
         if(Target(SQL_MARIADB, SQL_MARIADB_ORA, SQL_MYSQL))
         {
-			TOKEN_CHANGE(name, "LONGBLOB");
+            TOKEN_CHANGE(name, "LONGBLOB");
 
             Token::Remove(unit);
-			Token::Remove(open, close);
+            Token::Remove(open, close);
 
-			conv = true;
+            conv = true;
         }
         else
         // Convert to BYTEA in PostgreSQL
-        if(_target == SQL_POSTGRESQL)
+        if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
         {
             Token::Remove(name);
             Token::Change(unit, "BYTEA", L"BYTEA", 5);
 
-			conv = true;
+            conv = true;
         }
     }
     else
@@ -3729,7 +3738,7 @@ bool SqlParser::ParseLongType(Token *name)
             }
             else
                 // Convert to BYTEA in PostgreSQL
-                if(_target == SQL_POSTGRESQL)
+                if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                 {
                     Token::Remove(name);
                     Token::Change(unit, "BYTEA", L"BYTEA", 5);
@@ -3755,7 +3764,7 @@ bool SqlParser::ParseLongType(Token *name)
                 }
                 else
                     // Convert to TEXT in PostgreSQL
-                    if(_target == SQL_POSTGRESQL)
+                    if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                     {
                         Token::Remove(name);
                         Token::Change(unit, "TEXT", L"TEXT", 4);
@@ -3763,25 +3772,25 @@ bool SqlParser::ParseLongType(Token *name)
         }
 
 
-	if(conv)
-	{
-		STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
-		STATS_ITM_CONV_OK
-	}
+    if(conv)
+    {
+        STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
+        STATS_ITM_CONV_OK
+    }
 
-	STATS_UPDATE_STATUS
+    STATS_UPDATE_STATUS
 
-	if(unit != NULL)
-	{
-		TokenStr dt;
-		dt.Append(name, true);
-		APPENDSTR(dt, " ");
-		dt.Append(unit, true);
+    if(unit != NULL)
+    {
+        TokenStr dt;
+        dt.Append(name, true);
+        APPENDSTR(dt, " ");
+        dt.Append(unit, true);
 
-		DTYPE_STATS_V(dt.GetCStr(), name)
-	}
-	else
-		DTYPE_STATS(name)	
+        DTYPE_STATS_V(dt.GetCStr(), name)
+    }
+    else
+        DTYPE_STATS(name)    
 
     DTYPE_DTL_STATS_L(name)
 
@@ -3799,17 +3808,17 @@ bool SqlParser::ParseLogicalType(Token *name)
 
     if(_target == SQL_SQL_SERVER)
         TOKEN_CHANGE(name, "BIT");
-	else
+    else
     if(_target != SQL_SYBASE_ADS)
         TOKEN_CHANGE(name, "CHAR(1)");
                 
-	STATS_DECL
+    STATS_DECL
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
-	name->data_subtype = TOKEN_DT2_BOOL;
+    name->data_subtype = TOKEN_DT2_BOOL;
 
     return true;
 }
@@ -3823,19 +3832,23 @@ bool SqlParser::ParseLongblobType(Token *name)
     if(name->Compare("LONGBLOB", L"LONGBLOB", 8) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Convert to BLOB in Oracle
     if(_target == SQL_ORACLE)
         Token::Change(name, "BLOB", L"BLOB", 4);
     else
-        // Convert to VARBINARY(max) in SQL Server
-        if(_target == SQL_SQL_SERVER)
-        {
-            Token::Change(name, "VARBINARY", L"VARBINARY", 9);
-            AppendNoFormat(name, "(max)", L"(max)", 5);
-        }
-                
+    // Convert to VARBINARY(max) in SQL Server
+    if(_target == SQL_SQL_SERVER)
+    {
+        Token::Change(name, "VARBINARY", L"VARBINARY", 9);
+        AppendNoFormat(name, "(max)", L"(max)", 5);
+    }
+    else
+    // Convert to BYTEA in openGauss
+    if(_target == SQL_OPENGAUSS)
+        Token::Change(name, "BYTEA", L"BYTEA", 5);
+
     STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
@@ -3852,7 +3865,7 @@ bool SqlParser::ParseLvarcharType(Token *name)
     if(name->Compare("LVARCHAR", L"LVARCHAR", 8) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -3885,7 +3898,7 @@ bool SqlParser::ParseLvarcharType(Token *name)
                 Token::Change(name, "VARCHAR", L"VARCHAR", 7);
         }
 
-		STATS_ITM_DECL 
+        STATS_ITM_DECL 
         DTYPE_DTL_STATS_L(name)
 
         return true;
@@ -3900,20 +3913,24 @@ bool SqlParser::ParseMediumblobType(Token *name)
     if(name->Compare("MEDIUMBLOB", L"MEDIUMBLOB", 10) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Convert to BLOB in Oracle
     if(_target == SQL_ORACLE)
         Token::Change(name, "BLOB", L"BLOB", 4);
     else
-        // Convert to VARBIANRY(max) in SQL Server
-        if(_target == SQL_SQL_SERVER)
-        {
-            Token::Change(name, "VARBINARY", L"VARBINARY", 9);
-            AppendNoFormat(name, "(max)", L"(max)", 5);
-        }
+    // Convert to VARBIANRY(max) in SQL Server
+    if(_target == SQL_SQL_SERVER)
+    {
+        Token::Change(name, "VARBINARY", L"VARBINARY", 9);
+        AppendNoFormat(name, "(max)", L"(max)", 5);
+    }
+    else
+    // Convert to BYTEA in openGauss
+    if(_target == SQL_OPENGAUSS)
+        Token::Change(name, "BYTEA", L"BYTEA", 5);
     
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -3929,7 +3946,7 @@ bool SqlParser::ParseLongtextType(Token *name)
     if(name->Compare("LONGTEXT", L"LONGTEXT", 8) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Convert to VARCHAR(max) in SQL Server
     if(_target == SQL_SQL_SERVER)
@@ -3938,15 +3955,19 @@ bool SqlParser::ParseLongtextType(Token *name)
         AppendNoFormat(name, "(max)", L"(max)", 5);
     }
     else
-        // Convert to CLOB in Oracle and DB2
-        if(_target == SQL_ORACLE || _target == SQL_DB2)
-            Token::Change(name, "CLOB", L"CLOB", 4);
-        else
-            // Convert to LONGTEXT in MySQL
-            if(_source != SQL_MYSQL && Target(SQL_MARIADB, SQL_MYSQL))
-                Token::Change(name, "LONGTEXT", L"LONGTEXT", 8);
-    
-	STATS_ITM_DECL 
+    // Convert to CLOB in Oracle and DB2
+    if(_target == SQL_ORACLE || _target == SQL_DB2)
+        Token::Change(name, "CLOB", L"CLOB", 4);
+    else
+    // Convert to LONGTEXT in MySQL
+    if(_source != SQL_MYSQL && Target(SQL_MARIADB, SQL_MYSQL))
+        Token::Change(name, "LONGTEXT", L"LONGTEXT", 8);
+    else
+    // Convert to TEXT in openGauss
+    if(_target == SQL_OPENGAUSS)
+        Token::Change(name, "TEXT", L"TEXT", 4);
+
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -3962,7 +3983,7 @@ bool SqlParser::ParseMediumintType(Token *name)
     if(name->Compare("MEDIUMINT", L"MEDIUMINT", 9) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -3983,11 +4004,15 @@ bool SqlParser::ParseMediumintType(Token *name)
     if(_target == SQL_ORACLE)
         Token::Change(name, "NUMBER(7)", L"NUMBER(7)", 9);
     else
-        // Convert to INT in SQL Server
-        if(_target == SQL_SQL_SERVER)
-            Token::Change(name, "INT", L"INT", 3);
+    // Convert to INT in SQL Server
+    if(_target == SQL_SQL_SERVER)
+        Token::Change(name, "INT", L"INT", 3);
+    else
+    // Convert to INT in openGauss
+    if(_target == SQL_OPENGAUSS)
+        Token::Change(name, "INT", L"INT", 3);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -4002,7 +4027,7 @@ bool SqlParser::ParseMediumtextType(Token *name)
     if(name->Compare("MEDIUMTEXT", L"MEDIUMTEXT", 10) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Convert to VARCHAR(max) in SQL Server
     if(_target == SQL_SQL_SERVER)
@@ -4011,15 +4036,19 @@ bool SqlParser::ParseMediumtextType(Token *name)
         AppendNoFormat(name, "(max)", L"(max)", 5);
     }
     else
-        // Convert to CLOB in Oracle and DB2
-        if(_target == SQL_ORACLE || _target == SQL_DB2)
-            Token::Change(name, "CLOB", L"CLOB", 4);
-        else
-            // Convert to LONGTEXT in MySQL
-            if(_source != SQL_MYSQL && Target(SQL_MARIADB, SQL_MYSQL))
-                Token::Change(name, "LONGTEXT", L"LONGTEXT", 8);
+    // Convert to CLOB in Oracle and DB2
+    if(_target == SQL_ORACLE || _target == SQL_DB2)
+        Token::Change(name, "CLOB", L"CLOB", 4);
+    else
+    // Convert to LONGTEXT in MySQL
+    if(_source != SQL_MYSQL && Target(SQL_MARIADB, SQL_MYSQL))
+        Token::Change(name, "LONGTEXT", L"LONGTEXT", 8);
+    else
+    // Convert to TEXT in openGauss
+    if(_target == SQL_OPENGAUSS)
+        Token::Change(name, "TEXT", L"TEXT", 4);
         
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -4035,7 +4064,7 @@ bool SqlParser::ParseMiddleintType(Token *name)
     if(name->Compare("MIDDLEINT", L"MIDDLEINT", 9) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -4060,7 +4089,7 @@ bool SqlParser::ParseMiddleintType(Token *name)
         if(_target == SQL_SQL_SERVER)
             Token::Change(name, "INT", L"INT", 3);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -4076,7 +4105,7 @@ bool SqlParser::ParseMoneyType(Token *name)
     bool money_in_braces = false;
     bool money_in_quotes = false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(name->Compare("MONEY", L"MONEY", 5) == true)
         money = true;
@@ -4117,7 +4146,7 @@ bool SqlParser::ParseMoneyType(Token *name)
         Token::Change(name, "NUMBER", L"NUMBER", 6);
 
         // Range (17,2) is allowed in PostgreSQL
-        if(_source == SQL_POSTGRESQL)
+        if(_source == SQL_POSTGRESQL || _source == SQL_OPENGAUSS)
             Append(name, "(17,2)", L"(17,2)", 6);
         else
             // Range (16,2) is allowed in Informix
@@ -4133,7 +4162,7 @@ bool SqlParser::ParseMoneyType(Token *name)
                         Append(name, "(19,4)", L"(19,4)", 6);
     }
     else
-        if(Target(SQL_SQL_SERVER, SQL_POSTGRESQL) == true)
+        if(Target(SQL_SQL_SERVER, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
         {
             // Remove ""
             if(money_in_quotes == true)
@@ -4161,18 +4190,18 @@ bool SqlParser::ParseMoneyType(Token *name)
                     if(_target != SQL_SYBASE_ASA && money_in_quotes == true)
                         Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
-	if(money_in_braces)
-	{
-		DTYPE_STATS_V("MONEY", name)
-		DTYPE_DTL_STATS_ST("MONEY", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(money_in_braces)
+    {
+        DTYPE_STATS_V("MONEY", name)
+        DTYPE_DTL_STATS_ST("MONEY", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -4189,7 +4218,7 @@ bool SqlParser::ParseNationalType(Token *name)
     if(name->Compare("NATIONAL", L"NATIONAL", 8) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -4235,7 +4264,7 @@ bool SqlParser::ParseNationalType(Token *name)
         }
         else
             // Convert to TEXT in PostgreSQL
-            if(_target == SQL_POSTGRESQL)
+            if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
             {
                 Token::Remove(name);
                 Token::Change(unit, "TEXT", L"TEXT", 4);
@@ -4265,7 +4294,7 @@ bool SqlParser::ParseNationalType(Token *name)
                 }
                 else
                     // Change to TEXT in PostgreSQL
-                    if(_target == SQL_POSTGRESQL)
+                    if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                     {
                         Token::Remove(name, character);
                         Token::Change(varying, "TEXT", L"TEXT", 4);
@@ -4289,7 +4318,7 @@ bool SqlParser::ParseNationalType(Token *name)
                 }
                 else
                     // Convert to CHARACTER VARYING and CHAR VARYING in PostgreSQL
-                    if(_target == SQL_POSTGRESQL)
+                    if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                     {
                         Token::Remove(name);
 
@@ -4299,7 +4328,7 @@ bool SqlParser::ParseNationalType(Token *name)
                     }
                     else
                         // Size is mandatory in MySQL
-                        if(Target(SQL_MARIADB, SQL_MYSQL) && open == NULL)		
+                        if(Target(SQL_MARIADB, SQL_MYSQL) && open == NULL)        
                             Append(varying, "(1)", L"(1)", 3);
         }
         else
@@ -4307,7 +4336,7 @@ bool SqlParser::ParseNationalType(Token *name)
             if(varying == NULL && varchar == NULL)
             {
                 // Convert to CHARACTER and CHAR in PostgreSQL
-                if(_target == SQL_POSTGRESQL)
+                if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                     Token::Remove(name);
                 else
                     // If size is greater than 255 convert to NVARCHAR in MySQL
@@ -4344,7 +4373,7 @@ bool SqlParser::ParseNationalType(Token *name)
                         }
                 }
 
-				STATS_ITM_DECL 
+                STATS_ITM_DECL 
                 DTYPE_DTL_STATS_L(name)
 
                 return true;
@@ -4359,14 +4388,14 @@ bool SqlParser::ParseNcharType(Token *name)
     bool nchar = false;
     bool nchar_in_braces = false;
 
-	bool conv_no_need = false;
-	bool conv = false;
+    bool conv_no_need = false;
+    bool conv = false;
 
-	STATS_DECL
-	STATS_SET_DESC(SQL_DATATYPE_NCHAR_DESC)
+    STATS_DECL
+    STATS_SET_DESC(SQL_DATATYPE_NCHAR_DESC)
 
-	STATS_DTL_DECL
-	STATS_ITM_DECL
+    STATS_DTL_DECL
+    STATS_ITM_DECL
 
     if(name->Compare("NCHAR", L"NCHAR", 5) == true)
         nchar = true;
@@ -4404,7 +4433,7 @@ bool SqlParser::ParseNcharType(Token *name)
         }
         else
         // Change to TEXT in PostgreSQL
-        if(_target == SQL_POSTGRESQL)
+        if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
         {
             Token::Remove(name);
             Token::Change(varying, "TEXT", L"TEXT", 4);
@@ -4431,7 +4460,7 @@ bool SqlParser::ParseNcharType(Token *name)
         }
         else
         // Convert NCHAR VARYING to VARCHAR in PostgreSQL
-        if(_target == SQL_POSTGRESQL)
+        if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
         {
             Token::Remove(name);
             Token::Change(varying, "VARCHAR", L"VARCHAR", 7);
@@ -4442,7 +4471,7 @@ bool SqlParser::ParseNcharType(Token *name)
         }
         else
         // Size is mandatory in MySQL
-        if(Target(SQL_MARIADB, SQL_MYSQL) && open == NULL)		
+        if(Target(SQL_MARIADB, SQL_MYSQL) && open == NULL)        
             Append(varying, "(1)", L"(1)", 3);
     }
     else
@@ -4454,7 +4483,7 @@ bool SqlParser::ParseNcharType(Token *name)
             Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
         // Convert to CHAR in PostgreSQL
-        if(_target == SQL_POSTGRESQL)
+        if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
             Token::Change(name, "CHAR", L"CHAR", 4);
         else
         // If size is greater than 255 convert to NVARCHAR in MySQL and MariaDB
@@ -4466,12 +4495,12 @@ bool SqlParser::ParseNcharType(Token *name)
                 num = size->GetInt();
 
             if(num > 255)
-			{
+            {
                 TOKEN_CHANGE(name, "NVARCHAR");
-				conv = true;
-			}
-			else
-				conv_no_need = true;
+                conv = true;
+            }
+            else
+                conv_no_need = true;
         }
     }
     else
@@ -4479,29 +4508,29 @@ bool SqlParser::ParseNcharType(Token *name)
     if(_target != SQL_SQL_SERVER && nchar_in_braces == true)
         Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	if(conv)
-	{
-		STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
-	}
-	else
-	if(conv_no_need)
-	{
-		STATS_DTL_CONV_NO_NEED(true)  
-		STATS_ITM_CONV_NO_NEED
-	}
+    if(conv)
+    {
+        STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
+    }
+    else
+    if(conv_no_need)
+    {
+        STATS_DTL_CONV_NO_NEED(true)  
+        STATS_ITM_CONV_NO_NEED
+    }
 
-	STATS_UPDATE_STATUS
+    STATS_UPDATE_STATUS
 
-	if(nchar_in_braces)
-	{
-		DTYPE_STATS_V("NCHAR", name)
-		DTYPE_DTL_STATS_ST("NCHAR", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(nchar_in_braces)
+    {
+        DTYPE_STATS_V("NCHAR", name)
+        DTYPE_DTL_STATS_ST("NCHAR", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -4515,14 +4544,14 @@ bool SqlParser::ParseNclobType(Token *name)
     if(name->Compare("NCLOB", L"NCLOB", 5) == false)
         return false;
 
-	bool conv_no_need = false;
-	bool conv = false;
+    bool conv_no_need = false;
+    bool conv = false;
 
-	STATS_DECL
-	STATS_SET_DESC(SQL_DATATYPE_NCLOB_DESC)
+    STATS_DECL
+    STATS_SET_DESC(SQL_DATATYPE_NCLOB_DESC)
 
-	STATS_DTL_DECL
-	STATS_ITM_DECL
+    STATS_DTL_DECL
+    STATS_ITM_DECL
 
     Token *open = GetNextCharToken('(', L'(');
 
@@ -4553,38 +4582,38 @@ bool SqlParser::ParseNclobType(Token *name)
     {
         Token::Change(name, "NVARCHAR", L"NVARCHAR", 8);
         AppendNoFormat(name, "(max)", L"(max)", 5);
-		conv = true;
+        conv = true;
     }
     else
     // Convert to LONGTEXT in MySQL
     if(Target(SQL_MARIADB, SQL_MARIADB_ORA, SQL_MYSQL))
-	{
+    {
         Token::Change(name, "LONGTEXT", L"LONGTEXT", 8);
-		conv = true;
-	}
+        conv = true;
+    }
     else
     // Convert to TEXT in PostgreSQL
-    if(_target == SQL_POSTGRESQL)
-	{
+    if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
+    {
         Token::Change(name, "TEXT", L"TEXT", 4);
-		conv = true;
-	}
+        conv = true;
+    }
 
-	if(conv)
-	{
-		STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
-	}
-	else
-	if(conv_no_need)
-	{
-		STATS_DTL_CONV_NO_NEED(true)  
-		STATS_ITM_CONV_NO_NEED
-	}
+    if(conv)
+    {
+        STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
+    }
+    else
+    if(conv_no_need)
+    {
+        STATS_DTL_CONV_NO_NEED(true)  
+        STATS_ITM_CONV_NO_NEED
+    }
 
-	STATS_UPDATE_STATUS
+    STATS_UPDATE_STATUS
 
-	DTYPE_STATS(name)
-	DTYPE_DTL_STATS_L(name)
+    DTYPE_STATS(name)
+    DTYPE_DTL_STATS_L(name)
 
     return true;
 }
@@ -4598,7 +4627,7 @@ bool SqlParser::ParseNmemoType(Token *name)
     if(!TOKEN_CMP(name, "NMEMO"))
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -4611,13 +4640,13 @@ bool SqlParser::ParseNmemoType(Token *name)
     else
     // Convert to LONGTEXT in MySQL
     if(Target(SQL_MARIADB, SQL_MYSQL))
-		Token::Change(name, "LONGTEXT", L"LONGTEXT", 8);
+        Token::Change(name, "LONGTEXT", L"LONGTEXT", 8);
     else
     // Convert to TEXT in PostgreSQL
-    if(_target == SQL_POSTGRESQL)
+    if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
         Token::Change(name, "TEXT", L"TEXT", 4);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -4632,7 +4661,7 @@ bool SqlParser::ParseMemoType(Token *name)
     if(!TOKEN_CMP(name, "MEMO"))
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -4645,13 +4674,13 @@ bool SqlParser::ParseMemoType(Token *name)
     else
     // Convert to LONGTEXT in MySQL
     if(Target(SQL_MARIADB, SQL_MYSQL))
-		Token::Change(name, "LONGTEXT", L"LONGTEXT", 8);
+        Token::Change(name, "LONGTEXT", L"LONGTEXT", 8);
     else
     // Convert to TEXT in PostgreSQL
-    if(_target == SQL_POSTGRESQL)
+    if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
         Token::Change(name, "TEXT", L"TEXT", 4);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -4666,7 +4695,7 @@ bool SqlParser::ParseNtextType(Token *name)
     bool ntext = false;
     bool ntext_in_braces = false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(name->Compare("NTEXT", L"NTEXT", 5) == true)
         ntext = true;
@@ -4693,25 +4722,25 @@ bool SqlParser::ParseNtextType(Token *name)
             Token::Change(name, "LONGTEXT", L"LONGTEXT", 8);
         else
             // Convert to TEXT in PostgreSQL
-            if(_target == SQL_POSTGRESQL)
+            if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                 Token::Change(name, "TEXT", L"TEXT", 4);
             else
                 // Remove [] for other database
                 if(_target != SQL_SQL_SERVER && ntext_in_braces == true)
                     Token::ChangeNoFormat(name, name, 1, name->len - 2);
             
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
-	if(ntext_in_braces)
-	{
-		DTYPE_STATS_V("NTEXT", name)
-		DTYPE_DTL_STATS_ST("NTEXT", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(ntext_in_braces)
+    {
+        DTYPE_STATS_V("NTEXT", name)
+        DTYPE_DTL_STATS_ST("NTEXT", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
     
     return true;
 }
@@ -4725,11 +4754,11 @@ bool SqlParser::ParseNumberType(Token *name, int clause_scope)
     if(name->Compare("NUMBER", L"NUMBER", 6) == false)
         return false;
 
-	STATS_DECL
-	STATS_SET_DESC(SQL_DATATYPE_NUMBER_DESC)
+    STATS_DECL
+    STATS_SET_DESC(SQL_DATATYPE_NUMBER_DESC)
 
-	STATS_DTL_DECL
-	STATS_ITM_DECL
+    STATS_DTL_DECL
+    STATS_ITM_DECL
 
     // Precision and scale are optional
     Token *open = GetNextCharToken('(', L'(');
@@ -4758,23 +4787,23 @@ bool SqlParser::ParseNumberType(Token *name, int clause_scope)
         if(clause_scope == SQL_SCOPE_FUNC_PARAMS || clause_scope == SQL_SCOPE_PROC_PARAMS ||
             clause_scope == SQL_SCOPE_VAR_DECL)
         {
-			if(!_option_oracle_plsql_number_mapping.empty())
-			{
-				TokenStr number(_option_oracle_plsql_number_mapping);
-				Token::ChangeNoFormat(name, number);
-			}
-			else
-			// Use Double class instead of primitive double type in Java to handle NULLs
-			if(_target_app == APP_JAVA)
-				TOKEN_CHANGE_NOFMT(name, "Double");
-			else 
+            if(!_option_oracle_plsql_number_mapping.empty())
+            {
+                TokenStr number(_option_oracle_plsql_number_mapping);
+                Token::ChangeNoFormat(name, number);
+            }
+            else
+            // Use Double class instead of primitive double type in Java to handle NULLs
+            if(_target_app == APP_JAVA)
+                TOKEN_CHANGE_NOFMT(name, "Double");
+            else 
             if(_target == SQL_SQL_SERVER)
                 Token::Change(name, "FLOAT", L"FLOAT", 5);
             else
             if(Target(SQL_MARIADB, SQL_MYSQL))
                 Token::Change(name, "DOUBLE", L"DOUBLE", 6);
             else
-			if(_target != SQL_ORACLE)
+            if(_target != SQL_ORACLE)
                 Token::Change(name, "INT", L"INT", 3);
         }
         else
@@ -4788,7 +4817,7 @@ bool SqlParser::ParseNumberType(Token *name, int clause_scope)
         }
         else
         // Convert to DOUBLE PRECISION in PostgreSQL
-        if(_target == SQL_POSTGRESQL)
+        if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
         {
             Token::Change(name, "DOUBLE PRECISION", L"DOUBLE PRECISION", 16);
 
@@ -4823,10 +4852,10 @@ bool SqlParser::ParseNumberType(Token *name, int clause_scope)
         if(scale != NULL)
             sc = scale->GetInt();
 
-		// Use Integer class instead of primitive int type in Java to handle NULLs
-		if(_target_app == APP_JAVA)
-			TOKEN_CHANGE_NOFMT(name, "Integer");
-		else
+        // Use Integer class instead of primitive int type in Java to handle NULLs
+        if(_target_app == APP_JAVA)
+            TOKEN_CHANGE_NOFMT(name, "Integer");
+        else
         // Convert to other databases
         if(_target != SQL_ORACLE)
         {
@@ -4834,7 +4863,7 @@ bool SqlParser::ParseNumberType(Token *name, int clause_scope)
             if(prec != -1 && prec < 3 && sc == 0)
             {
                 // SQL Server TINYINT is 0 to 255, PostgreSQL does not support TINYINT
-                if(Target(SQL_SQL_SERVER, SQL_POSTGRESQL, SQL_GREENPLUM))
+                if(Target(SQL_SQL_SERVER, SQL_POSTGRESQL, SQL_GREENPLUM, SQL_OPENGAUSS))
                     Token::Change(name, "SMALLINT", L"SMALLINT", 8);
                 else
                     Token::Change(name, "TINYINT", L"TINYINT", 7);
@@ -4878,15 +4907,15 @@ bool SqlParser::ParseNumberType(Token *name, int clause_scope)
         }
     }
 
-	name->data_type = TOKEN_DT_NUMBER;
+    name->data_type = TOKEN_DT_NUMBER;
 
-	STATS_DTL_CONV_OK(true, STATS_CONV_MEDIUM, "", "")
-	STATS_UPDATE_STATUS
+    STATS_DTL_CONV_OK(true, STATS_CONV_MEDIUM, "", "")
+    STATS_UPDATE_STATUS
 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_L(name)
 
-	return true;
+    return true;
 }
 
 // NUMERIC in Oracle, SQL Server, DB2, MySQL, PostreSQL, Informix, Sybase ASE, Sybase ASA
@@ -4913,7 +4942,7 @@ bool SqlParser::ParseNumericType(Token *name)
     if(numeric == false && numeric_in_braces == false && num == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     Token *open = GetNextCharToken('(', L'(');
 
@@ -4977,18 +5006,18 @@ bool SqlParser::ParseNumericType(Token *name)
             if(_target != SQL_DB2 && num == true)
                 Token::Change(name, "NUMERIC", L"NUMERIC", 7);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     
-	if(numeric_in_braces)
-	{
-		DTYPE_STATS_V("NUMERIC", name)
-		DTYPE_DTL_STATS_ST("NUMERIC", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(numeric_in_braces)
+    {
+        DTYPE_STATS_V("NUMERIC", name)
+        DTYPE_DTL_STATS_ST("NUMERIC", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -5012,7 +5041,7 @@ bool SqlParser::ParseNvarcharType(Token *name)
     if(nvarchar == false && nvarchar_in_braces == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     Token *open = GetNextCharToken('(', L'(');
     Token *size = NULL;
@@ -5049,7 +5078,7 @@ bool SqlParser::ParseNvarcharType(Token *name)
         }
         else
             // Change to TEXT in PostgreSQL
-            if(_target == SQL_POSTGRESQL)
+            if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
             {
                 Token::Change(name, "TEXT", L"TEXT", 4);
                 Token::Remove(open, close);
@@ -5071,7 +5100,7 @@ bool SqlParser::ParseNvarcharType(Token *name)
         }
         else
             // Convert to VARCHAR in PostgreSQL
-            if(_target == SQL_POSTGRESQL)
+            if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
             {
                 Token::Change(name, "VARCHAR", L"VARCHAR", 7);
 
@@ -5095,18 +5124,18 @@ bool SqlParser::ParseNvarcharType(Token *name)
 
     name->data_type = TOKEN_DT_STRING;
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
-	if(nvarchar_in_braces)
-	{
-		DTYPE_STATS_V("NVARCHAR", name)
-		DTYPE_DTL_STATS_ST("NVARCHAR", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(nvarchar_in_braces)
+    {
+        DTYPE_STATS_V("NVARCHAR", name)
+        DTYPE_DTL_STATS_ST("NVARCHAR", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -5121,13 +5150,13 @@ bool SqlParser::ParseNvarchar2Type(Token *name, int clause_scope)
         return false;
 
     bool conv_no_need = false;
-	bool conv = false;
+    bool conv = false;
 
-	STATS_DECL
-	STATS_SET_DESC(SQL_DATATYPE_NVARCHAR2_DESC)
+    STATS_DECL
+    STATS_SET_DESC(SQL_DATATYPE_NVARCHAR2_DESC)
 
-	STATS_DTL_DECL
-	STATS_ITM_DECL
+    STATS_DTL_DECL
+    STATS_ITM_DECL
 
     // Size is mandatory in Oracle
     /*Token *open */ (void) GetNextCharToken('(', L'(');
@@ -5137,36 +5166,36 @@ bool SqlParser::ParseNvarchar2Type(Token *name, int clause_scope)
     if(_target != SQL_ORACLE)
     {
         // Convert to VARCHAR in PostgreSQL
-        if(_target == SQL_POSTGRESQL)
+        if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
             Token::Change(name, "VARCHAR", L"VARCHAR", 7);
         else
             // Convert to NVARCHAR in other databases
             Token::Change(name, "NVARCHAR", L"NVARCHAR", 8);
 
-		// When used in parameter list for a function or procedure add length
+        // When used in parameter list for a function or procedure add length
         if(clause_scope == SQL_SCOPE_FUNC_PARAMS || clause_scope == SQL_SCOPE_PROC_PARAMS)
-			APPEND_NOFMT(name, "(2000)");
+            APPEND_NOFMT(name, "(2000)");
 
-		conv = true;
+        conv = true;
     }
-	else
-		conv_no_need = true;
+    else
+        conv_no_need = true;
 
-	if(conv)
-	{
-		STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
-	}
-	else
-	if(conv_no_need)
-	{
-		STATS_DTL_CONV_NO_NEED(true)  
-		STATS_ITM_CONV_NO_NEED
-	}
+    if(conv)
+    {
+        STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
+    }
+    else
+    if(conv_no_need)
+    {
+        STATS_DTL_CONV_NO_NEED(true)  
+        STATS_ITM_CONV_NO_NEED
+    }
 
-	STATS_UPDATE_STATUS
+    STATS_UPDATE_STATUS
 
-	DTYPE_STATS(name)
-	DTYPE_DTL_STATS_L(name)
+    DTYPE_STATS(name)
+    DTYPE_DTL_STATS_L(name)
 
     return true;
 }
@@ -5180,11 +5209,11 @@ bool SqlParser::ParseRawType(Token *name)
     if(name->Compare("RAW", L"RAW", 3) == false)
         return false;
 
-	STATS_DECL
-	STATS_DTL_DECL
-	STATS_SET_DESC(SQL_DATATYPE_RAW_DESC)
+    STATS_DECL
+    STATS_DTL_DECL
+    STATS_SET_DESC(SQL_DATATYPE_RAW_DESC)
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
     // Size is mandatory in Oracle, but can be skipped for PL/SQL parameters
     Token *open = TOKEN_GETNEXT('(');
@@ -5192,29 +5221,29 @@ bool SqlParser::ParseRawType(Token *name)
     Token *close = TOKEN_GETNEXTP(size, ')');
 
     if(Target(SQL_SQL_SERVER, SQL_MARIADB, SQL_MYSQL))
-	{
-		TOKEN_CHANGE(name, "VARBINARY");
-		STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
-	}
-	else
-	// MariaDB supports RAW in Oracle compatibility mode
-	if(_target == SQL_MARIADB_ORA)
-	{
-		STATS_DTL_CONV_NO_NEED(true)
-		STATS_ITM_CONV_NO_NEED
-	}
+    {
+        TOKEN_CHANGE(name, "VARBINARY");
+        STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
+    }
+    else
+    // MariaDB supports RAW in Oracle compatibility mode
+    if(_target == SQL_MARIADB_ORA)
+    {
+        STATS_DTL_CONV_NO_NEED(true)
+        STATS_ITM_CONV_NO_NEED
+    }
     else
     // Convert to BYTEA in PostgreSQL and Greenplum
-    if(_target == SQL_POSTGRESQL || _target == SQL_GREENPLUM)
+    if(_target == SQL_POSTGRESQL || _target == SQL_GREENPLUM || _target == SQL_OPENGAUSS)
     {
         Token::Change(name, "BYTEA", L"BYTEA", 5);
         Token::Remove(open, close);
 
-		STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
+        STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
     }
 
-	STATS_UPDATE_STATUS
-	DTYPE_STATS(name)
+    STATS_UPDATE_STATUS
+    DTYPE_STATS(name)
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -5239,7 +5268,7 @@ bool SqlParser::ParseRealType(Token *name)
     if(real == false && real_in_braces == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // MySQL REAL can include display size
     Token *open = GetNextCharToken('(', L'(');
@@ -5270,7 +5299,7 @@ bool SqlParser::ParseRealType(Token *name)
         if(_source == SQL_ORACLE && _target != SQL_ORACLE)
         {
             // Convert to DOUBLE PRECISION in PostgreSQL
-            if(_target == SQL_POSTGRESQL)
+            if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                 Token::Change(name, "DOUBLE PRECISION", L"DOUBLE PRECISION", 16);
             else
                 Token::Change(name, "FLOAT", L"FLOAT", 5);
@@ -5284,18 +5313,18 @@ bool SqlParser::ParseRealType(Token *name)
                 if(_target != SQL_SQL_SERVER && real_in_braces == true)
                     Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
-	if(real_in_braces)
-	{
-		DTYPE_STATS_V("REAL", name)
-		DTYPE_DTL_STATS_ST("REAL", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(real_in_braces)
+    {
+        DTYPE_STATS_V("REAL", name)
+        DTYPE_DTL_STATS_ST("REAL", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -5306,28 +5335,28 @@ bool SqlParser::ParseRefcursor(Token *name)
     if(name == NULL)
         return false;
 
-	STATS_DECL
-	STATS_SET_DESC(SQL_DATATYPE_REFCURSOR_DESC)
+    STATS_DECL
+    STATS_SET_DESC(SQL_DATATYPE_REFCURSOR_DESC)
 
-	// SYS_REFCURSOR in Oracle 
-	if(TOKEN_CMP(name, "SYS_REFCURSOR"))
-	{
-		if(Target(SQL_POSTGRESQL))
-			TOKEN_CHANGE(name, "REFCURSOR");
-	}
-	else
-	// REFCURSOR in PostgreSQL
-	if(TOKEN_CMP(name, "REFCURSOR"))
-	{
-	}
-	else
-		return false;
-	
+    // SYS_REFCURSOR in Oracle 
+    if(TOKEN_CMP(name, "SYS_REFCURSOR"))
+    {
+        if(Target(SQL_POSTGRESQL, SQL_OPENGAUSS))
+            TOKEN_CHANGE(name, "REFCURSOR");
+    }
+    else
+    // REFCURSOR in PostgreSQL
+    if(TOKEN_CMP(name, "REFCURSOR"))
+    {
+    }
+    else
+        return false;
+    
     // Netezza does not support cursors
     if(_target == SQL_NETEZZA)
         Token::Change(name, "RECORD", L"RECORD", 6);
         
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -5344,22 +5373,22 @@ bool SqlParser::ParseRowidType(Token *name)
     if(name->Compare("ROWID", L"ROWID", 5) == false)
         return false;
 
-	STATS_DECL
-	STATS_DTL_DECL
-	STATS_SET_DESC(SQL_DATATYPE_ROWID_DESC)
+    STATS_DECL
+    STATS_DTL_DECL
+    STATS_SET_DESC(SQL_DATATYPE_ROWID_DESC)
 
-	STATS_ITM_DECL
+    STATS_ITM_DECL
 
     // Convert to CHAR(10) in other databases
     if(_target != SQL_ORACLE)
     {
         Token::Change(name, "CHAR(10)", L"CHAR(10)", 8);
 
-		STATS_DTL_CONV_ERROR(true, STATS_CONV_HIGH, "", "")
+        STATS_DTL_CONV_ERROR(true, STATS_CONV_HIGH, "", "")
         STATS_ITM_CONV_ERROR
     }
         
-	STATS_UPDATE_STATUS
+    STATS_UPDATE_STATUS
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -5375,7 +5404,7 @@ bool SqlParser::ParseRowversionType(Token *name)
     bool rowversion = false;
     bool rowversion_in_braces = false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(name->Compare("ROWVERSION", L"ROWVERSION", 10) == true)
         rowversion = true;
@@ -5392,14 +5421,14 @@ bool SqlParser::ParseRowversionType(Token *name)
         Token::Change(name, "BINARY(8)", L"BINARY(8)", 9);
     else
         // Convert to BYTEA in PostgreSQL
-        if(_target == SQL_POSTGRESQL)
+        if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
             Token::Change(name, "BYTEA", L"BYTEA", 5);
         else
             // Remove [] for other databases
             if(_target != SQL_SQL_SERVER && rowversion_in_braces == true)
                 Token::ChangeNoFormat(name, name, 1, name->len - 2);
     
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -5415,7 +5444,7 @@ bool SqlParser::ParseSerialType(Token *name)
     if(name->Compare("SERIAL", L"SERIAL", 6) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -5450,7 +5479,7 @@ bool SqlParser::ParseSerialType(Token *name)
                 Token::Change(name, "INT", L"INT", 3);
         }
 
-		STATS_ITM_DECL 
+        STATS_ITM_DECL 
         DTYPE_DTL_STATS_L(name)
 
         return true;
@@ -5465,13 +5494,13 @@ bool SqlParser::ParseSerial2Type(Token *name)
     if(name->Compare("SERIAL2", L"SERIAL2", 7) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Convet to NUMBER(5) in Oracle
     if(_target == SQL_ORACLE)
         Token::Change(name, "NUMBER(5)", L"NUMBER(5)", 9);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -5487,13 +5516,13 @@ bool SqlParser::ParseSerial4Type(Token *name)
     if(name->Compare("SERIAL4", L"SERIAL4", 7) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Convert to NUMBER(10) in Oracle
     if(_target == SQL_ORACLE)
         Token::Change(name, "NUMBER(10)", L"NUMBER(10)", 10);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -5509,7 +5538,7 @@ bool SqlParser::ParseSerial8Type(Token *name)
     if(name->Compare("SERIAL8", L"SERIAL8", 7) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     Token *open = GetNextCharToken('(', L'(');
 
@@ -5532,7 +5561,7 @@ bool SqlParser::ParseSerial8Type(Token *name)
         if(_target == SQL_SQL_SERVER)
             Token::Change(name, "BIGINT", L"BIGINT", 6);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -5548,12 +5577,12 @@ bool SqlParser::ParseShortType(Token *name)
     if(!TOKEN_CMP(name, "SHORT"))
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(_target != SQL_SYBASE_ADS)
-		TOKEN_CHANGE(name, "SMALLINT");
+        TOKEN_CHANGE(name, "SMALLINT");
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -5570,7 +5599,7 @@ bool SqlParser::ParseSmalldatetimeType(Token *name)
     bool smalldatetime_in_braces = false;
     bool smalldatetime_in_quotes = false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(name->Compare("SMALLDATETIME", L"SMALLDATETIME", 13) == true)
         smalldatetime = true;
@@ -5587,7 +5616,7 @@ bool SqlParser::ParseSmalldatetimeType(Token *name)
         return false;
 
     // Convert to TIMESTAMP in Oracle, PostgreSQL
-    if(Target(SQL_ORACLE, SQL_POSTGRESQL) == true)
+    if(Target(SQL_ORACLE, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
     {
         Token::Change(name, "TIMESTAMP", L"TIMESTAMP", 9);
 
@@ -5614,18 +5643,18 @@ bool SqlParser::ParseSmalldatetimeType(Token *name)
                     if(_target != SQL_SYBASE_ASA && smalldatetime_in_quotes == true)
                         Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
-	if(smalldatetime_in_braces)
-	{
-		DTYPE_STATS_V("SMALLDATETIME", name)
-		DTYPE_DTL_STATS_ST("SMALLDATETIME", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(smalldatetime_in_braces)
+    {
+        DTYPE_STATS_V("SMALLDATETIME", name)
+        DTYPE_DTL_STATS_ST("SMALLDATETIME", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -5639,7 +5668,7 @@ bool SqlParser::ParseSmallfloatType(Token *name)
     if(name->Compare("SMALLFLOAT", L"SMALLFLOAT", 10) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Convet to BINARY_FLOAT in Oracle
     if(_target == SQL_ORACLE)
@@ -5649,7 +5678,7 @@ bool SqlParser::ParseSmallfloatType(Token *name)
         if(_target != SQL_INFORMIX)
             Token::Change(name, "REAL", L"REAL", 4);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -5675,7 +5704,7 @@ bool SqlParser::ParseSmallintType(Token *name, int clause_scope)
     if(smallint == false && smallint_in_braces == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     Token *open = GetNextCharToken('(', L'(');
 
@@ -5713,18 +5742,18 @@ bool SqlParser::ParseSmallintType(Token *name, int clause_scope)
             if(_target != SQL_SQL_SERVER && smallint_in_braces == true)
                 Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
     if(smallint_in_braces)
-	{
-		DTYPE_STATS_V("SMALLINT", name)
-		DTYPE_DTL_STATS_ST("SMALLINT", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    {
+        DTYPE_STATS_V("SMALLINT", name)
+        DTYPE_DTL_STATS_ST("SMALLINT", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -5738,7 +5767,7 @@ bool SqlParser::ParseSmallmoneyType(Token *name)
     bool smallmoney = false;
     bool smallmoney_in_braces = false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(name->Compare("SMALLMONEY", L"SMALLMONEY", 10) == true)
         smallmoney = true;
@@ -5775,25 +5804,25 @@ bool SqlParser::ParseSmallmoneyType(Token *name)
         }
         else
             // Convet to MONEY in PostgreSQL
-            if(_target == SQL_POSTGRESQL)
+            if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                 Token::Change(name, "MONEY", L"MONEY", 5);
             else
                 // Remove [] for other databases
                 if(_target != SQL_SQL_SERVER && smallmoney_in_braces == true)
                     Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     
-	if(smallmoney_in_braces)
-	{
-		DTYPE_STATS_V("SMALLMONEY", name)
-		DTYPE_DTL_STATS_ST("SMALLMONEY", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(smallmoney_in_braces)
+    {
+        DTYPE_STATS_V("SMALLMONEY", name)
+        DTYPE_DTL_STATS_ST("SMALLMONEY", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -5807,13 +5836,13 @@ bool SqlParser::ParseSmallserialType(Token *name)
     if(name->Compare("SMALLSERIAL", L"SMALLSERIAL", 11) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Convet to NUMBER(5) in Oracle
     if(_target == SQL_ORACLE)
         Token::Change(name, "NUMBER(5)", L"NUMBER(5)", 9);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -5829,12 +5858,12 @@ bool SqlParser::ParseStringType(Token *name)
     if(!TOKEN_CMP(name, "STRING"))
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(Target(SQL_SQL_SERVER))
         TOKEN_CHANGE(name, "VARCHAR(1000)");
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -5851,7 +5880,7 @@ bool SqlParser::ParseTextType(Token *name)
     bool text_in_braces = false;
     bool text_in_quotes = false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(name->Compare("TEXT", L"TEXT", 4) == true)
         text = true;
@@ -5916,18 +5945,18 @@ bool SqlParser::ParseTextType(Token *name)
                     if(_target != SQL_SYBASE_ASA && text_in_quotes == true)
                         Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
-	if(text_in_braces)
-	{
-		DTYPE_STATS_V("TEXT", name)
-		DTYPE_DTL_STATS_ST("TEXT", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(text_in_braces)
+    {
+        DTYPE_STATS_V("TEXT", name)
+        DTYPE_DTL_STATS_ST("TEXT", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -5941,7 +5970,7 @@ bool SqlParser::ParseTimeType(Token *name)
     bool time_ = false;
     bool time_in_braces = false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(name->Compare("TIME", L"TIME", 4) == true)
         time_ = true;
@@ -5977,7 +6006,7 @@ bool SqlParser::ParseTimeType(Token *name)
         Token *zone = GetNextWordToken("ZONE", L"ZONE", 4);
 
         // If target is not PostgreSQL remove WITHOUT TIME ZONE
-        if(_target != SQL_POSTGRESQL && without != NULL)
+        if(_target != SQL_POSTGRESQL && _target != SQL_OPENGAUSS && without != NULL)
             Token::Remove(without, zone);
     }
 
@@ -6020,7 +6049,7 @@ bool SqlParser::ParseTimeType(Token *name)
             }
             else
                 // Append fraction in PostgreSQL
-                if(_target == SQL_POSTGRESQL)
+                if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                 {
                     if(open == NULL)
                     {
@@ -6037,18 +6066,18 @@ bool SqlParser::ParseTimeType(Token *name)
                     if(_target != SQL_SQL_SERVER && time_in_braces == true)
                         Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
-	if(time_in_braces)
-	{
-		DTYPE_STATS_V("TIME", name)
-		DTYPE_DTL_STATS_ST("TIME", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(time_in_braces)
+    {
+        DTYPE_STATS_V("TIME", name)
+        DTYPE_DTL_STATS_ST("TIME", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -6062,7 +6091,7 @@ bool SqlParser::ParseTimetzType(Token *name)
     if(name->Compare("TIMETZ", L"TIMETZ", 6) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -6088,7 +6117,7 @@ bool SqlParser::ParseTimetzType(Token *name)
             Token::Change(name, "TIMESTAMP WITH TIME ZONE", L"TIMESTAMP WITH TIME ZONE", 24);
     }
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -6114,11 +6143,11 @@ bool SqlParser::ParseTimestampType(Token *name)
     if(timestamp == false && timestamp_in_braces == false)
         return false;
 
-	STATS_DECL
-	STATS_SET_DESC(SQL_DATATYPE_TIMESTAMP_DESC)
+    STATS_DECL
+    STATS_SET_DESC(SQL_DATATYPE_TIMESTAMP_DESC)
 
-	STATS_DTL_DECL
-	STATS_ITM_DECL
+    STATS_DTL_DECL
+    STATS_ITM_DECL
 
     Token *open = GetNextCharToken('(', L'(');
     Token *close = NULL;
@@ -6156,7 +6185,7 @@ bool SqlParser::ParseTimestampType(Token *name)
         zone = GetNextWordToken("ZONE", L"ZONE", 4);
 
         // If target is not PostgreSQL remove WITHOUT TIME ZONE
-        if(_target != SQL_POSTGRESQL && without != NULL)
+        if(_target != SQL_POSTGRESQL && _target != SQL_OPENGAUSS && without != NULL)
         {
             Token::Remove(without, zone);
             conv = true;
@@ -6202,8 +6231,8 @@ bool SqlParser::ParseTimestampType(Token *name)
             Append(name, "(6)", L"(6)", 3);
             conv = true;
         }
-		else
-		// TIMESTAMP with milliseconds in Sybase ADS
+        else
+        // TIMESTAMP with milliseconds in Sybase ADS
         if(_source == SQL_SYBASE_ADS)
         {
             APPEND_NOFMT(name, "(3)");
@@ -6229,7 +6258,7 @@ bool SqlParser::ParseTimestampType(Token *name)
         conv = true;
     }
     else
-    if(_target == SQL_POSTGRESQL)
+    if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
     {
         // Convert SQL Server TIMESTAMP to BYTEA in PostgreSQL
         if(_source == SQL_SQL_SERVER)
@@ -6251,12 +6280,12 @@ bool SqlParser::ParseTimestampType(Token *name)
         Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
     if(!conv)
-	{
-		STATS_DTL_CONV_NO_NEED(true)
+    {
+        STATS_DTL_CONV_NO_NEED(true)
         STATS_ITM_CONV_NO_NEED
-	}
+    }
 
-	STATS_UPDATE_STATUS
+    STATS_UPDATE_STATUS
 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_L(name)
@@ -6273,7 +6302,7 @@ bool SqlParser::ParseTimestamptzType(Token *name)
     if(name->Compare("TIMESTAMPTZ", L"TIMESTAMPTZ", 11) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -6299,7 +6328,7 @@ bool SqlParser::ParseTimestamptzType(Token *name)
             Token::Change(name, "TIMESTAMP WITH TIME ZONE", L"TIMESTAMP WITH TIME ZONE", 24);
     }
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -6318,13 +6347,17 @@ bool SqlParser::ParseTinyblobType(Token *name)
     if(_target == SQL_ORACLE)
         Token::Change(name, "RAW(255)", L"RAW(255)", 8);
     else
-        // Convert to VARBINARY(255) in SQL Server
-        if(_target == SQL_SQL_SERVER)
-            Token::Change(name, "VARBINARY(255)", L"VARBINARY(255)", 14);
+    // Convert to VARBINARY(255) in SQL Server
+    if(_target == SQL_SQL_SERVER)
+        Token::Change(name, "VARBINARY(255)", L"VARBINARY(255)", 14);
+    else
+    // Convert to BYTEA in openGauss
+    if(_target == SQL_OPENGAUSS)
+        Token::Change(name, "BYTEA", L"BYTEA", 5);
 
-	STATS_DECL
+    STATS_DECL
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -6350,7 +6383,7 @@ bool SqlParser::ParseTinyintType(Token *name, int clause_scope)
     if(tinyint == false && tinyint_in_braces == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // MySQL TINYINT can include display size
     Token *open = GetNextCharToken('(', L'(');
@@ -6395,25 +6428,25 @@ bool SqlParser::ParseTinyintType(Token *name, int clause_scope)
     }
     else
     // Convert to SMALLINT in PostgreSQL, Redshift
-    if(Target(SQL_POSTGRESQL, SQL_REDSHIFT))
+    if(Target(SQL_POSTGRESQL, SQL_REDSHIFT, SQL_OPENGAUSS))
         Token::Change(name, "SMALLINT", L"SMALLINT", 8);
     else
     // Remove [] for other databases
     if(_target != SQL_SQL_SERVER && tinyint_in_braces == true)
         Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     
-	if(tinyint_in_braces)
-	{
-		DTYPE_STATS_V("TINYINT", name)
-		DTYPE_DTL_STATS_ST("TINYINT", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(tinyint_in_braces)
+    {
+        DTYPE_STATS_V("TINYINT", name)
+        DTYPE_DTL_STATS_ST("TINYINT", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -6427,17 +6460,21 @@ bool SqlParser::ParseTinytextType(Token *name)
     if(name->Compare("TINYTEXT", L"TINYTEXT", 8) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Convert to VARCHAR2(255) in Oracle
     if(_target == SQL_ORACLE)
         Token::Change(name, "VARCHAR2(255)", L"VARCHAR2(255)", 13);
     else
-        // Convert to VARCHAR(255) in SQL Server
-        if(_target == SQL_SQL_SERVER)
-            Token::Change(name, "VARCHAR(255)", L"VARCHAR(255)", 12);
+    // Convert to VARCHAR(255) in SQL Server
+    if(_target == SQL_SQL_SERVER)
+        Token::Change(name, "VARCHAR(255)", L"VARCHAR(255)", 12);
+    else
+    // Convert to TEXT in openGauss
+    if(_target == SQL_OPENGAUSS)
+        Token::Change(name, "TEXT", L"TEXT", 4);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -6453,7 +6490,7 @@ bool SqlParser::ParseUnicodeType(Token *name)
     if(name->Compare("UNICODE", L"UNICODE", 7) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -6498,7 +6535,7 @@ bool SqlParser::ParseUnicodeType(Token *name)
                 Token::Change(name, "NATIONAL", L"NATIONAL", 8);
             else
                 // Convert to CHARACTER VARYING and CHAR VARYING in PostgreSQL
-                if(_target == SQL_POSTGRESQL)
+                if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                 {
                     Token::Remove(name);
 
@@ -6515,11 +6552,11 @@ bool SqlParser::ParseUnicodeType(Token *name)
             Token::Change(name, "NATIONAL", L"NATIONAL", 8);
         else
             // Convert to CHARACTER and CHAR in PostgreSQL
-            if(_target == SQL_POSTGRESQL)
+            if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                 Token::Remove(name);
     }
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -6534,7 +6571,7 @@ bool SqlParser::ParseUnicharType(Token *name)
     if(name->Compare("UNICHAR", L"UNICHAR", 7) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -6552,10 +6589,10 @@ bool SqlParser::ParseUnicharType(Token *name)
         Token::Change(name, "NCHAR", L"NCHAR", 5);
     else
         // Convert to CHAR in PostgreSQL
-        if(_target == SQL_POSTGRESQL)
+        if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
             Token::Change(name, "CHAR", L"CHAR", 4);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -6570,7 +6607,7 @@ bool SqlParser::ParseUniqueidentifierType(Token *name)
     bool uuid = false;
     bool in_braces = false;
 
-	STATS_DECL
+    STATS_DECL
 
     // In SQL Server, UNIQUEIDENTIFIER is stored in 16 bytes, but on retrieval returns 36 characters (GUID with dashes)
 
@@ -6585,14 +6622,14 @@ bool SqlParser::ParseUniqueidentifierType(Token *name)
         return false;
 
     // Convert to CHAR(36) in Oracle, MySQL, PostgreSQL
-    if(Target(SQL_ORACLE, SQL_MYSQL, SQL_POSTGRESQL) == true)
+    if(Target(SQL_ORACLE, SQL_MYSQL, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
         Token::Change(name, "CHAR(36)", L"CHAR(16)", 8);
     else
         // Remove [] for other databases
         if(_target != SQL_SQL_SERVER && in_braces == true)
             Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -6608,17 +6645,17 @@ bool SqlParser::ParseUniqueidentifierstrType(Token *name)
     if(name->Compare("UNIQUEIDENTIFIERSTR", L"UNIQUEIDENTIFIERSTR", 19) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Convert to CHAR(36) in Oracle, SQL Server
     if(Target(SQL_ORACLE, SQL_SQL_SERVER) == true)
         Token::Change(name, "CHAR(36)", L"CHAR(36)", 8);
     else
         // Convert to UUID in PostgreSQL
-        if(_target == SQL_POSTGRESQL)
+        if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
             Token::Change(name, "UUID", L"UUID", 4);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -6634,7 +6671,7 @@ bool SqlParser::ParseUnitextType(Token *name)
     if(name->Compare("UNITEXT", L"UNITEXT", 7) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Convert to NCLOB in Oracle
     if(_target == SQL_ORACLE)
@@ -6648,10 +6685,10 @@ bool SqlParser::ParseUnitextType(Token *name)
         }
         else
             // Convert to TEXT in PostgreSQL
-            if(_target == SQL_POSTGRESQL)
+            if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                 Token::Change(name, "TEXT", L"TEXT", 4);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -6667,7 +6704,7 @@ bool SqlParser::ParseUnivarcharType(Token *name)
     if(name->Compare("UNIVARCHAR", L"UNIVARCHAR", 10) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -6695,7 +6732,7 @@ bool SqlParser::ParseUnivarcharType(Token *name)
             Token::Change(name, "NVARCHAR", L"NVARCHAR", 8);
         else
             // Convert to VARCHAR in PostgreSQL
-            if(_target == SQL_POSTGRESQL)
+            if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
             {
                 Token::Change(name, "VARCHAR", L"VARCHAR", 7);
 
@@ -6704,7 +6741,7 @@ bool SqlParser::ParseUnivarcharType(Token *name)
                     Append(name, "(1)", L"(1)", 3);
             }
 
-			STATS_ITM_DECL 
+            STATS_ITM_DECL 
             DTYPE_DTL_STATS_L(name)
 
             return true;
@@ -6720,7 +6757,7 @@ bool SqlParser::ParseUnsignedType(Token *name)
     if(name->Compare("UNSIGNED", L"UNSIGNED", 8) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -6753,7 +6790,7 @@ bool SqlParser::ParseUnsignedType(Token *name)
         }
         else
             // Convert UNSIGNED BIGINT to NUMERIC(20) in SQL Server, PostgreSQL
-            if(Target(SQL_SQL_SERVER, SQL_POSTGRESQL) == true)
+            if(Target(SQL_SQL_SERVER, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
             {
                 Token::Remove(name);
                 Token::Change(unit, "NUMERIC(20)", L"NUMERIC(20)", 11);
@@ -6771,7 +6808,7 @@ bool SqlParser::ParseUnsignedType(Token *name)
             }
             else
                 // Convert UNSIGNED INT to NUMERIC(10) in SQL Server, PostgreSQL
-                if(Target(SQL_SQL_SERVER, SQL_POSTGRESQL) == true)
+                if(Target(SQL_SQL_SERVER, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
                 {
                     Token::Remove(name);
                     Token::Change(unit, "NUMERIC(10)", L"NUMERIC(10)", 11);
@@ -6789,7 +6826,7 @@ bool SqlParser::ParseUnsignedType(Token *name)
                 }
                 else
                     // Convert UNSIGNED SMALLINT to NUMERIC(5) in SQL Server, PostgreSQL
-                    if(Target(SQL_SQL_SERVER, SQL_POSTGRESQL) == true)
+                    if(Target(SQL_SQL_SERVER, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
                     {
                         Token::Remove(name);
                         Token::Change(unit, "NUMERIC(5)", L"NUMERIC(5)", 10);
@@ -6810,14 +6847,14 @@ bool SqlParser::ParseUnsignedType(Token *name)
                             Token::Remove(name);
                         else
                             // Convert UNSIGNED TINYINT to NUMERIC(3) in PostgreSQL
-                            if(_target == SQL_POSTGRESQL)
+                            if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                             {
                                 Token::Remove(name);
                                 Token::Change(unit, "NUMERIC(3)", L"NUMERIC(3)", 10);
                             }
                 }
 
-				STATS_ITM_DECL 
+                STATS_ITM_DECL 
                 DTYPE_DTL_STATS_L(name)
 
                 return true;
@@ -6832,7 +6869,7 @@ bool SqlParser::ParseUrowidType(Token *name)
     if(name->Compare("UROWID", L"UROWID", 6) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -6855,7 +6892,7 @@ bool SqlParser::ParseUrowidType(Token *name)
             Append(name, "(4000)", L"(4000)", 6);
     }
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -6870,13 +6907,13 @@ bool SqlParser::ParseUuidType(Token *name)
     if(name->Compare("UUID", L"UUID", 4) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Convert to CHAR(36) in Oracle
     if(_target == SQL_ORACLE)
         Token::Change(name, "CHAR(36)", L"CHAR(36)", 8);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -6892,7 +6929,7 @@ bool SqlParser::ParseVarbinaryType(Token *name)
     bool varbinary = false;
     bool varbinary_in_braces = false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(name->Compare("VARBINARY", L"VARBINARY", 9) == true)
         varbinary = true;
@@ -6927,7 +6964,7 @@ bool SqlParser::ParseVarbinaryType(Token *name)
         }
         else
             // Change to BYTEA in PostgreSQL
-            if(_target == SQL_POSTGRESQL)
+            if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
             {
                 Token::Change(name, "BYTEA", L"BYTEA", 5);
                 Token::Remove(open, close);
@@ -6945,7 +6982,7 @@ bool SqlParser::ParseVarbinaryType(Token *name)
         }
         else
             // Convert to BYTEA in PostgreSQL
-            if(_target == SQL_POSTGRESQL)
+            if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
             {
                 Token::Change(name, "BYTEA", L"BYTEA", 5);
 
@@ -6967,18 +7004,18 @@ bool SqlParser::ParseVarbinaryType(Token *name)
                     if(_target != SQL_SQL_SERVER && varbinary_in_braces == true)
                         Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
-	if(varbinary_in_braces)
-	{
-		DTYPE_STATS_V("VARBINARY", name)
-		DTYPE_DTL_STATS_ST("VARBINARY", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(varbinary_in_braces)
+    {
+        DTYPE_STATS_V("VARBINARY", name)
+        DTYPE_DTL_STATS_ST("VARBINARY", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -6992,7 +7029,7 @@ bool SqlParser::ParseVarbitType(Token *name)
     if(name->Compare("VARBIT", L"VARBIT", 6) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -7007,7 +7044,7 @@ bool SqlParser::ParseVarbitType(Token *name)
     }
 
     // Calculating RAW and BINARY size in bytes
-    if(open != NULL && Target(SQL_POSTGRESQL, SQL_SYBASE_ASA) == false)
+    if(open != NULL && Target(SQL_POSTGRESQL, SQL_SYBASE_ASA, SQL_OPENGAUSS) == false)
     {
         int size;
         int rem;
@@ -7031,7 +7068,7 @@ bool SqlParser::ParseVarbitType(Token *name)
         if(open == NULL)
         {
             // VARBIT is unlimited by default in PostgreSQL
-            if(_source == SQL_POSTGRESQL)
+            if(_source == SQL_POSTGRESQL || _source == SQL_OPENGAUSS)
                 Append(name, "(2000)", L"(2000)", 6);
             else
                 // VARBIT is 1 bit by default in Sybase ASA
@@ -7053,7 +7090,7 @@ bool SqlParser::ParseVarbitType(Token *name)
             }
         }
 
-		STATS_ITM_DECL 
+        STATS_ITM_DECL 
         DTYPE_DTL_STATS_L(name)
 
         return true;
@@ -7067,8 +7104,8 @@ bool SqlParser::ParseVarcharType(Token *name, int clause_scope)
 
     bool varchar = false;
     bool varchar_in_braces = false;
-	bool conv = false;
-	bool req_eval = false;
+    bool conv = false;
+    bool req_eval = false;
 
     if(name->Compare("VARCHAR", L"VARCHAR", 7) == true)
         varchar = true;
@@ -7080,11 +7117,11 @@ bool SqlParser::ParseVarcharType(Token *name, int clause_scope)
     if(varchar == false && varchar_in_braces == false)
         return false;
 
-	STATS_DECL
-	STATS_SET_DESC(SQL_DATATYPE_VARCHAR_DESC)
+    STATS_DECL
+    STATS_SET_DESC(SQL_DATATYPE_VARCHAR_DESC)
 
-	STATS_DTL_DECL
-	STATS_ITM_DECL
+    STATS_DTL_DECL
+    STATS_ITM_DECL
 
     Token *open = GetNextCharToken('(', L'(');
 
@@ -7099,32 +7136,32 @@ bool SqlParser::ParseVarcharType(Token *name, int clause_scope)
 
         // For Oracle, size can be followed by length semantics CHAR or BYTE; for DB2 BYTE, OCTETS (bytes)
         Token *byte_semantics = TOKEN_GETNEXTW("BYTE");
-		Token *char_semantics = NULL;
-		Token *character_semantics = NULL;
-		Token *octets_semantics = NULL;
+        Token *char_semantics = NULL;
+        Token *character_semantics = NULL;
+        Token *octets_semantics = NULL;
 
-		char_semantics = (byte_semantics == NULL) ? TOKEN_GETNEXTW("CHAR") : NULL;
+        char_semantics = (byte_semantics == NULL) ? TOKEN_GETNEXTW("CHAR") : NULL;
 
         // For Sybase ASA, size can be followed by length semantics CHAR or CHARACTER
         character_semantics = (char_semantics == NULL && byte_semantics == NULL) ? TOKEN_GETNEXTW("CHARACTER") : NULL;
 
-		// OCTETS for DB2
-		octets_semantics = (Nvl(character_semantics, char_semantics, byte_semantics) == NULL) ? TOKEN_GETNEXTW("OCTETS") : NULL;        
+        // OCTETS for DB2
+        octets_semantics = (Nvl(character_semantics, char_semantics, byte_semantics) == NULL) ? TOKEN_GETNEXTW("OCTETS") : NULL;        
 
         // Convert semantic CHARACTER in Sybase ASA to CHAR in Oracle
         if(character_semantics != NULL)
-		{
-			if(_target == SQL_ORACLE)
-			{
-				TOKEN_CHANGE(character_semantics, "CHAR");
-				conv = true;
-			}
-			else
-				req_eval = true;
-		}
-		else
-		if(octets_semantics != NULL && !Target(SQL_DB2))
-			req_eval = true;
+        {
+            if(_target == SQL_ORACLE)
+            {
+                TOKEN_CHANGE(character_semantics, "CHAR");
+                conv = true;
+            }
+            else
+                req_eval = true;
+        }
+        else
+        if(octets_semantics != NULL && !Target(SQL_DB2))
+            req_eval = true;
 
         Token *comma = GetNextCharToken(',', L',');
 
@@ -7135,10 +7172,10 @@ bool SqlParser::ParseVarcharType(Token *name, int clause_scope)
 
             // If target is not Informix remove reserve attribute
             if(_target != SQL_INFORMIX)
-			{
+            {
                 Token::Remove(comma, reserve);
-				conv = true;
-			}
+                conv = true;
+            }
         }
 
         close = GetNextCharToken(')', L')');
@@ -7151,10 +7188,10 @@ bool SqlParser::ParseVarcharType(Token *name, int clause_scope)
         {
             // Netezza requires size
             if(_target == SQL_NETEZZA)
-			{
+            {
                 Append(name, "(30)", L"(30)", 4);
-				conv = true;
-			}
+                conv = true;
+            }
         }
     }
 
@@ -7172,10 +7209,10 @@ bool SqlParser::ParseVarcharType(Token *name, int clause_scope)
         {
             // Remove for other databases
             if(_target != SQL_DB2)
-			{
+            {
                 Token::Remove(for_, data);
-				conv = true;
-			}
+                conv = true;
+            }
 
             binary = true;
         }
@@ -7187,10 +7224,10 @@ bool SqlParser::ParseVarcharType(Token *name, int clause_scope)
     {
         // If in a parameter list, remove length specification for Oracle
         if(clause_scope == SQL_SCOPE_FUNC_PARAMS || clause_scope == SQL_SCOPE_PROC_PARAMS)
-		{
+        {
             Token::Remove(open, close);
-			conv = true;
-		}
+            conv = true;
+        }
     }
 
     // If MAX is specified, convert to CLOB types
@@ -7201,15 +7238,15 @@ bool SqlParser::ParseVarcharType(Token *name, int clause_scope)
         {
             Token::Change(name, "LONGTEXT", L"LONGTEXT", 8);
             Token::Remove(open, close);
-			conv = true;
+            conv = true;
         }
         else
         // Change to TEXT in PostgreSQL, Redshift
-        if(Target(SQL_POSTGRESQL, SQL_REDSHIFT))
+        if(Target(SQL_POSTGRESQL, SQL_REDSHIFT, SQL_OPENGAUSS))
         {
             Token::Change(name, "TEXT", L"TEXT", 4);
             Token::Remove(open, close);
-			conv = true;
+            conv = true;
         }
     }
     else
@@ -7220,22 +7257,22 @@ bool SqlParser::ParseVarcharType(Token *name, int clause_scope)
         if(_target == SQL_ORACLE)
         {
             Token::Change(name, "RAW", L"RAW", 3);
-			conv = true;
+            conv = true;
         }
         else
         // Convert DB2 VARCHAR FOR BIT DATA to VARBINARY in SQL Server
         if(_target == SQL_SQL_SERVER)
-		{
+        {
             Token::Change(name, "VARBINARY", L"VARBINARY", 9);
-			conv = true;
-		}
+            conv = true;
+        }
         else
         // Convert DB2 VARCHAR FOR BIT DATA to BYTEA in PostgreSQL, Greenplum
-        if(Target(SQL_POSTGRESQL, SQL_GREENPLUM) == true)
+        if(Target(SQL_POSTGRESQL, SQL_GREENPLUM, SQL_OPENGAUSS) == true)
         {
             Token::Change(name, "BYTEA", L"BYTEA", 5);
             Token::Remove(open, close);
-			conv = true;
+            conv = true;
         }
     }
     else
@@ -7243,13 +7280,13 @@ bool SqlParser::ParseVarcharType(Token *name, int clause_scope)
     if(_target == SQL_ORACLE && _source != SQL_ORACLE)
     {
         Token::Change(name, "VARCHAR2", L"VARCHAR2", 8);
-		conv = true;
+        conv = true;
 
         // Default size
         if(open == NULL && clause_scope != SQL_SCOPE_FUNC_PARAMS && clause_scope != SQL_SCOPE_PROC_PARAMS)
         {
             // PostgreSQL allows not specify size
-            if(_source == SQL_POSTGRESQL)
+            if(_source == SQL_POSTGRESQL || _source == SQL_OPENGAUSS)
                 Append(name, "(4000)", L"(4000)", 6);
             else
                 // Size is 1 by default in SQL Server, Informix, Sybase ASE, Sybase ASA
@@ -7258,11 +7295,12 @@ bool SqlParser::ParseVarcharType(Token *name, int clause_scope)
     }
     else
     // VARCHAR is unlimited by default in PostgreSQL
-    if(_target == SQL_POSTGRESQL && open == NULL && _source != SQL_POSTGRESQL)
-	{
+    if((_target == SQL_POSTGRESQL && open == NULL && _source != SQL_POSTGRESQL) || 
+       (_target == SQL_OPENGAUSS && open == NULL && _source != SQL_OPENGAUSS))
+    {
         Append(name, "(1)", L"(1)", 3);
-		conv = true;
-	}
+        conv = true;
+    }
     else
     // Size is mandatory in MySQL
     if(Target(SQL_MARIADB, SQL_MYSQL) && open == NULL)
@@ -7276,7 +7314,7 @@ bool SqlParser::ParseVarcharType(Token *name, int clause_scope)
         else
             Append(name, "(1)", L"(1)", 3);
 
-		conv = true;
+        conv = true;
     }
     else
     // STRING in Hive
@@ -7284,36 +7322,36 @@ bool SqlParser::ParseVarcharType(Token *name, int clause_scope)
     {
         TOKEN_CHANGE(name, "STRING");
         Token::Remove(open, close);
-		conv = true;
+        conv = true;
     }
     else
     // Remove [] for other databases
     if(_target != SQL_SQL_SERVER && varchar_in_braces == true)
-	{
+    {
         Token::ChangeNoFormat(name, name, 1, name->len - 2);
-		conv = true;
-	}
+        conv = true;
+    }
 
-	if(!conv && !req_eval)
-	{
-		STATS_DTL_CONV_NO_NEED(true)
+    if(!conv && !req_eval)
+    {
+        STATS_DTL_CONV_NO_NEED(true)
         STATS_ITM_CONV_NO_NEED
-	}
+    }
 
     name->data_type = TOKEN_DT_STRING;
 
-	STATS_UPDATE_STATUS
+    STATS_UPDATE_STATUS
 
-	if(varchar_in_braces)
-	{
-		DTYPE_STATS_V("VARCHAR", name)
-		DTYPE_DTL_STATS_ST("VARCHAR", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(varchar_in_braces)
+    {
+        DTYPE_STATS_V("VARCHAR", name)
+        DTYPE_DTL_STATS_ST("VARCHAR", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -7327,11 +7365,11 @@ bool SqlParser::ParseVarchar2Type(Token *name, int clause_scope)
     if(name->Compare("VARCHAR2", L"VARCHAR2", 8) == false)
         return false;
 
-	STATS_DECL
-	STATS_SET_DESC(SQL_DATATYPE_VARCHAR2_DESC)
+    STATS_DECL
+    STATS_SET_DESC(SQL_DATATYPE_VARCHAR2_DESC)
 
-	STATS_DTL_DECL
-	STATS_ITM_DECL 
+    STATS_DTL_DECL
+    STATS_ITM_DECL 
 
     // Size is mandatory in  unless it is a parameter
     Token *open = GetNextCharToken('(', L'(');
@@ -7353,10 +7391,10 @@ bool SqlParser::ParseVarchar2Type(Token *name, int clause_scope)
     if(open != NULL)
         close = GetNextCharToken(')', L')');
 
-	if(_target_app == APP_JAVA && (clause_scope == SQL_SCOPE_FUNC_PARAMS || clause_scope == SQL_SCOPE_PROC_PARAMS ||
-			clause_scope == SQL_SCOPE_VAR_DECL || clause_scope == SQL_SCOPE_OBJ_TYPE_DECL))
-		TOKEN_CHANGE_NOFMT(name, "String");
-	else
+    if(_target_app == APP_JAVA && (clause_scope == SQL_SCOPE_FUNC_PARAMS || clause_scope == SQL_SCOPE_PROC_PARAMS ||
+            clause_scope == SQL_SCOPE_VAR_DECL || clause_scope == SQL_SCOPE_OBJ_TYPE_DECL))
+        TOKEN_CHANGE_NOFMT(name, "String");
+    else
     // Convert to VARCHAR in other databases
     if(_target != SQL_ORACLE)
     {
@@ -7382,41 +7420,41 @@ bool SqlParser::ParseVarchar2Type(Token *name, int clause_scope)
             if(_target == SQL_NETEZZA)
                 Append(name, "(30)", L"(30)", 4);
         }
-		else
-		// Inside PL/SQL VARCHAR2 can be up to 32767  even in Oracle 9i
-		if(size != NULL)
-		{
-			int sz = size->GetInt();
+        else
+        // Inside PL/SQL VARCHAR2 can be up to 32767  even in Oracle 9i
+        if(size != NULL)
+        {
+            int sz = size->GetInt();
 
-			if(_target == SQL_SQL_SERVER && sz > 8000)
-				TOKEN_CHANGE_FMT(size, "MAX", name);
-		}
+            if(_target == SQL_SQL_SERVER && sz > 8000)
+                TOKEN_CHANGE_FMT(size, "MAX", name);
+        }
     }
 
     name->data_type = TOKEN_DT_STRING;
 
-	STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
-	STATS_ITM_CONV_OK
+    STATS_DTL_CONV_OK(true, STATS_CONV_LOW, "", "")
+    STATS_ITM_CONV_OK
 
-	// Collapse reporting items for small VARCHAR2
-	if(size != NULL && size->GetInt() <= 128)
-	{
-		TokenStr typeInfo("VARCHAR2(<=128");
+    // Collapse reporting items for small VARCHAR2
+    if(size != NULL && size->GetInt() <= 128)
+    {
+        TokenStr typeInfo("VARCHAR2(<=128");
 
-		if(semantics != NULL)
-		{
-			APPENDSTR(typeInfo, " ");
-			typeInfo.Append(semantics);
-		}
+        if(semantics != NULL)
+        {
+            APPENDSTR(typeInfo, " ");
+            typeInfo.Append(semantics);
+        }
 
-		APPENDSTR(typeInfo, ")");
+        APPENDSTR(typeInfo, ")");
 
-		DTYPE_DTL_STATS_ST(typeInfo.str, "VARCHAR(<=128)");
-	}
-	else
-	    DTYPE_DTL_STATS_L(name)
+        DTYPE_DTL_STATS_ST(typeInfo.str, "VARCHAR(<=128)");
+    }
+    else
+        DTYPE_DTL_STATS_L(name)
 
-	STATS_UPDATE_STATUS
+    STATS_UPDATE_STATUS
     DTYPE_STATS(name)
 
     return true;
@@ -7431,7 +7469,7 @@ bool SqlParser::ParseVargraphicType(Token *name)
     if(name->Compare("VARGRAPHIC", L"VARGRAPHIC", 10) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -7449,10 +7487,10 @@ bool SqlParser::ParseVargraphicType(Token *name)
             Token::Change(name, "NVARCHAR", L"NVARCHAR", 8);
         else
             // Convert to VARCHAR in PostgreSQL
-            if(_target == SQL_POSTGRESQL)
+            if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
                 Token::Change(name, "VARCHAR", L"VARCHAR", 7);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -7467,7 +7505,7 @@ bool SqlParser::ParseXmlType(Token *name)
     bool xml = false;
     bool xml_in_braces = false;
 
-	STATS_DECL
+    STATS_DECL
 
     if(name->Compare("XML", L"XML", 3) == true)
         xml = true;
@@ -7491,18 +7529,18 @@ bool SqlParser::ParseXmlType(Token *name)
             if(_target != SQL_SQL_SERVER && xml_in_braces == true)
                 Token::ChangeNoFormat(name, name, 1, name->len - 2);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
 
-	if(xml_in_braces)
-	{
-		DTYPE_STATS_V("XML", name)
-		DTYPE_DTL_STATS_ST("XML", NULL)
-	}
-	else
-	{
-		DTYPE_STATS(name)
-		DTYPE_DTL_STATS_L(name)
-	}
+    if(xml_in_braces)
+    {
+        DTYPE_STATS_V("XML", name)
+        DTYPE_DTL_STATS_ST("XML", NULL)
+    }
+    else
+    {
+        DTYPE_STATS(name)
+        DTYPE_DTL_STATS_L(name)
+    }
 
     return true;
 }
@@ -7516,17 +7554,17 @@ bool SqlParser::ParseXmltypeType(Token *name)
     if(name->Compare("XMLTYPE", L"XMLTYPE", 7) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     // Convert to XML in SQL Server, DB2, PostgreSQL, Sybase ASA
-    if(Target(SQL_SQL_SERVER, SQL_DB2, SQL_POSTGRESQL, SQL_SYBASE_ASA) == true)
+    if(Target(SQL_SQL_SERVER, SQL_DB2, SQL_POSTGRESQL, SQL_SYBASE_ASA, SQL_OPENGAUSS) == true)
         Token::Change(name, "XML", L"XML", 3);
     else
         // Convert to LONGTEXT in MySQL
         if(Target(SQL_MARIADB, SQL_MYSQL))
             Token::Change(name, "LONGTEXT", L"LONGTEXT", 8);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_STATS(name)
     DTYPE_DTL_STATS_0(name)
 
@@ -7542,7 +7580,7 @@ bool SqlParser::ParseYearType(Token *name)
     if(name->Compare("YEAR", L"YEAR", 4) == false)
         return false;
 
-	STATS_DECL
+    STATS_DECL
 
     DTYPE_STATS(name)
 
@@ -7567,7 +7605,7 @@ bool SqlParser::ParseYearType(Token *name)
         if(_target == SQL_SQL_SERVER)
             Token::Change(name, "NUMERIC(4)", L"NUMERIC(4)", 10);
 
-	STATS_ITM_DECL 
+    STATS_ITM_DECL 
     DTYPE_DTL_STATS_L(name)
 
     return true;
@@ -7579,7 +7617,7 @@ bool SqlParser::ParseUdt(Token *name, int clause_scope)
     if(name == NULL)
         return false;
 
-	bool exists = false;
+    bool exists = false;
 
     // Convert to the base type for Oracle
     if(_target == SQL_ORACLE)
@@ -7601,37 +7639,37 @@ bool SqlParser::ParseUdt(Token *name, int clause_scope)
                         AppendCopy(name, basetype->next, basetype_end);
                 }
 
-				exists = true;
+                exists = true;
                 break;
             }
         }
     }
 
-	// Check for object table type
-	if(!exists)
-	{
-		ListwmItem *i = Find(_spl_obj_type_table, name);
+    // Check for object table type
+    if(!exists)
+    {
+        ListwmItem *i = Find(_spl_obj_type_table, name);
 
-		if(i != NULL)
-		{
-			Token *data_type = (Token*)i->value2;
+        if(i != NULL)
+        {
+            Token *data_type = (Token*)i->value2;
 
-			// HashMap<Integer, data_type> in Java
-			if(_target_app == APP_JAVA)
-			{
-				TokenStr dt("HashMap<Integer, ");
-				dt.Append(data_type);
-				APPENDSTR(dt, ">");
+            // HashMap<Integer, data_type> in Java
+            if(_target_app == APP_JAVA)
+            {
+                TokenStr dt("HashMap<Integer, ");
+                dt.Append(data_type);
+                APPENDSTR(dt, ">");
 
-				Token::ChangeNoFormat(name, dt);
-			}
+                Token::ChangeNoFormat(name, dt);
+            }
 
-			name->data_type = TOKEN_DT_UDT;
-			name->data_subtype = TOKEN_DT2_UDT_TAB_SCALAR;
+            name->data_type = TOKEN_DT_UDT;
+            name->data_subtype = TOKEN_DT2_UDT_TAB_SCALAR;
 
-			exists = true;
-		}
-	}
+            exists = true;
+        }
+    }
 
     return exists;
 }
