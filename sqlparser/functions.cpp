@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2581,7 +2586,7 @@ bool SqlParser::ParseFunctionCharindex(Token *name, Token *open)
 		TOKEN_CHANGE(name, "LOCATE"); 
 	else
 	// Convert to POSITION in PostgreSQL
-	if(_target == SQL_POSTGRESQL)
+	if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
 	{
 		Token::Change(name, "POSITION", L"POSITION", 8);
 
@@ -3264,7 +3269,7 @@ bool SqlParser::ParseFunctionConvertVarchar(Token *name, Token *open, Token *dat
 	/*Token *close */ (void) GetNextCharToken(')', L')');
 
 	// Convert to TO_CHAR in Oracle, PostgreSQL
-	if(Target(SQL_ORACLE, SQL_POSTGRESQL) == true)
+	if(Target(SQL_ORACLE, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
 	{
 		Token::Change(name, "TO_CHAR", L"TO_CHAR", 7);
 		Prepend(exp, "(", L"(", 1);
@@ -3600,7 +3605,7 @@ bool SqlParser::ParseFunctionCurrent(Token *name)
 			Token::Remove(second);
 		}
 		else
-		if(Target(SQL_MARIADB, SQL_MYSQL) || _target == SQL_POSTGRESQL || _target == SQL_GREENPLUM)
+		if(Target(SQL_MARIADB, SQL_MYSQL) || _target == SQL_POSTGRESQL || _target == SQL_GREENPLUM || _target == SQL_OPENGAUSS)
 		{
 			Token::Change(name, "CURRENT_DATE", L"CURRENT_DATE", 12);
 			Token::Remove(second);
@@ -3663,7 +3668,7 @@ bool SqlParser::ParseFunctionCurrent(Token *name)
 		}
 		else
 		// Convert to CURRENT_TIMESTAMP in MySQL, PostgreSQL, Greenplum
-		if(Target(SQL_MARIADB, SQL_MYSQL, SQL_POSTGRESQL, SQL_GREENPLUM))
+		if(Target(SQL_MARIADB, SQL_MYSQL, SQL_POSTGRESQL, SQL_GREENPLUM, SQL_OPENGAUSS))
 		{
 			Token::Change(second, "CURRENT_TIMESTAMP", L"CURRENT_TIMESTAMP", 17);
 			Token::Remove(name);
@@ -4294,7 +4299,7 @@ bool SqlParser::ParseFunctionDateadd(Token *name, Token *open)
 	Token *close = GetNextCharToken(')', L')');
 
 	// PostgreSQL
-	if(_target == SQL_POSTGRESQL)
+	if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
 	{
 		// If a numeric constant is specified, convert to "INTERVAL 'number part' + datetime" 
 		if(number_const == true)
@@ -6597,7 +6602,7 @@ bool SqlParser::ParseFunctionGetdate(Token *name, Token *open)
 		APPEND_NOFMT(open, "3");
 	}
 	else
-	if(Target(SQL_POSTGRESQL))
+	if(Target(SQL_POSTGRESQL, SQL_OPENGAUSS))
 		TOKEN_CHANGE(name, "NOW");
 
 	FUNC_STATS(name);
@@ -8055,7 +8060,7 @@ bool SqlParser::ParseFunctionIsnull(Token *name, Token* /*open*/)
 		Token::Change(name, "IFNULL", L"IFNULL", 6);
 	else
 	// Convert to COALESCE in PostgreSQL
-	if(_target == SQL_POSTGRESQL)
+	if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
 		Token::Change(name, "COALESCE", L"COALESCE", 8);
 	
 	// Set string datatype for ISNULL(exp, 'string');
@@ -9909,7 +9914,7 @@ bool SqlParser::ParseFunctionNvl(Token *name, Token* /*open*/)
 			Token::Change(name, "IFNULL", L"IFNULL", 6);
 		else
 		// Convert to COALESCE in PostgreSQL
-		if(_target == SQL_POSTGRESQL)
+		if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
 			Token::Change(name, "COALESCE", L"COALESCE", 8);
 	}
 	// 3 and more parameters in DB2
@@ -11718,7 +11723,7 @@ bool SqlParser::ParseFunctionSqlPercent(Token *name)
 		}
 		else
 		// GET DIAGNOSTICS var = ROW_COUNT in PostgreSQL
-		if(_target == SQL_POSTGRESQL)
+		if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
 		{
 			PREPEND(_spl_current_stmt, "GET DIAGNOSTICS ");
 			PREPEND_NOFMT(_spl_current_stmt, "v_sqlrowcount");
@@ -11744,7 +11749,7 @@ bool SqlParser::ParseFunctionSqlPercent(Token *name)
 	if(notfound != NULL)
 	{
 		// NOT FOUND in PostgreSQL
-		if(_target == SQL_POSTGRESQL)
+		if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
 		{
 			TOKEN_CHANGE(notfound, "NOT FOUND");
 			Token::Remove(name);
@@ -11759,7 +11764,7 @@ bool SqlParser::ParseFunctionSqlPercent(Token *name)
 	if(found != NULL)
 	{
 		// FOUND in PostgreSQL
-		if(_target == SQL_POSTGRESQL)
+		if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
 		{
 			Token::Remove(name);
 			Token::Remove(cent);
@@ -12679,7 +12684,7 @@ bool SqlParser::ParseFunctionSysdate(Token *name)
 		Token::Remove(open, close);
 	else
 	// Convert to CURRENT_TIMESTAMP in DB2, PostgreSQL, Greenplum
-	if(Target(SQL_DB2, SQL_POSTGRESQL, SQL_GREENPLUM) == true)
+	if(Target(SQL_DB2, SQL_POSTGRESQL, SQL_GREENPLUM, SQL_OPENGAUSS) == true)
 	{
 		Token::Change(name, "CURRENT_TIMESTAMP", L"CURRENT_TIMESTAMP", 17);
 		
@@ -12726,7 +12731,7 @@ bool SqlParser::ParseFunctionSystimestamp(Token *name)
 		Token::Change(name, "GETDATE()", L"GETDATE()", 9);
 	else
 	// Convert to CURRENT_TIMESTAMP in DB2, MySQL, PostgreSQL, Greenplum
-	if(Target(SQL_DB2, SQL_MYSQL, SQL_POSTGRESQL, SQL_GREENPLUM) == true)
+	if(Target(SQL_DB2, SQL_MYSQL, SQL_POSTGRESQL, SQL_GREENPLUM, SQL_OPENGAUSS) == true)
 		Token::Change(name, "CURRENT_TIMESTAMP", L"CURRENT_TIMESTAMP", 17);
 
 	name->data_type = TOKEN_DT_DATETIME;
@@ -14585,7 +14590,7 @@ bool SqlParser::ParseFunctionUser(Token *name)
 		AppendNoFormat(name, "()", L"()", 2);
 	else
 	// Convert to CURRENT_USER in PostgreSQL, Greenplum
-	if(Target(SQL_POSTGRESQL, SQL_GREENPLUM) == true)
+	if(Target(SQL_POSTGRESQL, SQL_GREENPLUM, SQL_OPENGAUSS) == true)
 		Token::Change(name, "CURRENT_USER", L"CURRENT_USER", 12);
 
 	name->nullable = false;

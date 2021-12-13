@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1400,7 +1405,7 @@ Token* SqlParser::GetDeclarationAppend()
 // Add RETURN statements for REFCURSORs
 void SqlParser::AddReturnRefcursors(Token *end)
 {
-	if(!Source(SQL_ORACLE) || !Target(SQL_POSTGRESQL) || _spl_refcursor_params_num == 0 || end == NULL)
+	if(!Source(SQL_ORACLE) || !Target(SQL_POSTGRESQL, SQL_OPENGAUSS) || _spl_refcursor_params_num == 0 || end == NULL)
 		return;
 
 	// Iterate REFCURSORS parameters and add RETURN statement
@@ -1461,7 +1466,7 @@ void SqlParser::AddGeneratedVariables()
 	// Row count variable needs to be added
 	if(_spl_need_rowcount_var)
 	{
-		if(_target == SQL_POSTGRESQL)
+		if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
 		{
 			Token *append_var = GetDeclarationAppend();
 

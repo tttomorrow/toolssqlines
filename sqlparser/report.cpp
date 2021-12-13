@@ -1,5 +1,10 @@
 /** 
-* Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -1215,6 +1220,9 @@ const char* Report::GetDbName(int type)
 	if(type == SQL_POSTGRESQL)
 		return "PostgreSQL";
 	else
+	if(type == SQL_OPENGAUSS)
+		return "openGauss";
+	else
 	if(type == SQL_SYBASE)
 		return "Sybase";
 	else
@@ -1271,6 +1279,9 @@ const char* Report::GetUrlName(int type)
 	else
 	if(type == SQL_POSTGRESQL)
 		return "postgresql";
+	else
+	if(type == SQL_OPENGAUSS)
+		return "openguass";
 	else
 	if(type == SQL_SYBASE)
 		return "sybase";

@@ -1,6 +1,7 @@
 
 // SQLParser exports
-// Copyright (c) 2012 SQLines. All rights reserved.
+// Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+// Portions Copyright (c) 2012 SQLines. All rights reserved.
 
 #ifndef sqlines_sqlparserexp_h
 #define sqlines_sqlparserexp_h
@@ -14,6 +15,8 @@
 #define SQL_SYBASE				6
 #define SQL_INFORMIX			7
 #define SQL_GREENPLUM			8
+
+#define SQL_OPENGAUSS                   18
 
 extern void* CreateParserObject();
 extern void SetParserTypes(void *parser, short source, short target);

@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,7 +138,7 @@ void SqlParser::InformixConvertReturning(Token *create, Token *procedure)
 			}
 			else
 			// RETURNS keyword in SQL Server, PostgreSQL
-			if(Target(SQL_SQL_SERVER, SQL_POSTGRESQL) == true)
+			if(Target(SQL_SQL_SERVER, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
 				Token::Change(_spl_returns, "RETURNS", L"RETURNS", 7);
 
 			// RETURNING can be used in a function as well

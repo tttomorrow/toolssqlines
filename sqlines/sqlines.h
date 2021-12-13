@@ -1,5 +1,10 @@
 /** 
-* Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -23,7 +28,7 @@
 #include "license.h"
 
 #define SQLINES_VERSION             "SQLines 3.1.330 - SQL Assessment and Conversion Tool."
-#define SQLINES_COPYRIGHT           "Copyright (c) 2020 SQLines. All Rights Reserved."
+#define SQLINES_COPYRIGHT           "Portions Copyright (c) 2020 SQLines.\nPortions Copyright (c) 2021 Huawei Technologies Co.,Ltd.\nAll Rights Reserved."
 
 #define S_OPTION                    "-s"        // Source type 
 #define T_OPTION                    "-t"        // Target type

@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,7 +179,7 @@ bool SqlParser::ParseProcedureSpAddType(Token *execute, Token *sp_addtype)
 		Token *att_close = GetNextSpecialCharToken(att_open, "'\"", L"'\"", 2);
 
 		// Remove comma and quotes
-		if(_target == SQL_POSTGRESQL)
+		if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
 		{
 			Token::Remove(comman);
 			Token::Remove(att_open);
@@ -183,7 +188,7 @@ bool SqlParser::ParseProcedureSpAddType(Token *execute, Token *sp_addtype)
 	}
 
 	// CREATE DOMAIN name AS type in PostgreSQL
-	if(_target == SQL_POSTGRESQL)
+	if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
 	{
 		if(execute != NULL)
 		{
@@ -243,7 +248,7 @@ bool SqlParser::ParseProcedureSpBindRule(Token *execute, Token *sp_bindrule)
 	SplitIdentifierByLastPart(object, table, column, num);
 
 	// ALTER TABLE table ADD CHECK condition in PostgreSQL
-	if(_target == SQL_POSTGRESQL)
+	if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
 	{
 		if(execute != NULL)
 		{

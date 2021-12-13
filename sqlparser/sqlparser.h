@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +58,7 @@
 #define SQL_ESGYNDB             15
 #define SQL_SYBASE_ADS          16
 #define SQL_MARIADB_ORA         17
+#define SQL_OPENGAUSS           18
 
 // Application types
 #define APP_JAVA				1
@@ -807,6 +813,7 @@ public:
 	bool ParseUdt(Token *name, int clause_scope);
 
 	// Statements
+	bool ParseAnalyzeStatement(Token *token);
 	bool ParseAlterStatement(Token *token, int *result_sets, bool *proc);
 	bool ParseAlterTableStatement(Token *alter, Token *table);
 	bool ParseAlterIndexStatement(Token *alter, Token *index);
@@ -849,12 +856,17 @@ public:
 	bool ParseDelimiterStatement(Token *delimiter);
 	bool ParseDropStatement(Token *drop);
 	bool ParseDropDatabaseStatement(Token *drop, Token *database);
+	bool ParseDropMatViewStatement(Token *drop, Token *next);
+	bool ParseDropIndexStatement(Token *drop, Token *index);
 	bool ParseDropTableStatement(Token *drop, Token *table);
 	bool ParseDropProcedureStatement(Token *drop, Token *procedure);
 	bool ParseDropTriggerStatement(Token *drop, Token *trigger);
 	bool ParseDropSchemaStatement(Token *drop, Token *schema);
 	bool ParseDropSequenceStatement(Token *drop, Token *sequence);
 	bool ParseDropStogroupStatement(Token *drop, Token *stogroup);
+	bool ParseDropTableSpaceStatement(Token *drop, Token *next);
+	bool ParseDropTypeStatement(Token *drop, Token *next);
+	bool ParseDropViewStatement(Token *drop, Token *next);
 	bool ParseExceptionBlock(Token *exception);
 	bool ParseExecStatement(Token *exec);
 	bool ParseExecuteStatement(Token *execute);
@@ -882,6 +894,7 @@ public:
 	bool ParsePrepareStatement(Token *prepare);
 	bool ParsePrintStatement(Token *print);
 	bool ParsePromptStatement(Token *prompt);
+	bool ParseRenameStatement(Token* rename);
 	bool ParseRemStatement(Token *rem);
 	bool ParseRaiseStatement(Token *raise);
 	bool ParseRepeatStatement(Token *repeat, int scope);

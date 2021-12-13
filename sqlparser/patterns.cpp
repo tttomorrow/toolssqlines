@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -240,7 +245,7 @@ bool SqlParser::ParseBooleanErrorCheckPattern()
 // Typical cursor check - @@FETCH_STATUS = 0 in SQL Server, @@SQLSTATUS = 0 in Sybase
 bool SqlParser::ParseBooleanCursorCheckPattern()
 {
-	if(!Source(SQL_SQL_SERVER, SQL_SYBASE) || !Target(SQL_ORACLE, SQL_MYSQL, SQL_MARIADB, SQL_POSTGRESQL))
+	if(!Source(SQL_SQL_SERVER, SQL_SYBASE) || !Target(SQL_ORACLE, SQL_MYSQL, SQL_MARIADB, SQL_POSTGRESQL, SQL_OPENGAUSS))
 		return false;
 
 	bool exists = false;
@@ -327,7 +332,7 @@ bool SqlParser::ParseBooleanCursorCheckPattern()
 					exists = true;
 				}
 				else
-				if(_target == SQL_POSTGRESQL)
+				if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
 				{
 					Token::Change(status, "FOUND", L"FOUND", 5);
 

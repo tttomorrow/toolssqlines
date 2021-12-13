@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +42,7 @@
 #define SQL_ESGYNDB             15
 #define SQL_SYBASE_ADS          16
 #define SQL_MARIADB_ORA         17
+#define SQL_OPENGAUSS           18
 
 extern void* CreateParserObject();
 extern void SetParserTypes(void *parser, short source, short target);

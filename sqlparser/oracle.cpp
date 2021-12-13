@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -674,7 +679,7 @@ bool SqlParser::ParseFunctionDbmsOutput(Token *name, Token *open, StatsDetailIte
 		}
 		else
 		// RAISE NOTICE '%', text in PostgreSQL and Netezza
-		if(Target(SQL_POSTGRESQL, SQL_NETEZZA) == true)
+		if(Target(SQL_POSTGRESQL, SQL_OPENGAUSS, SQL_NETEZZA) == true)
 		{
 			Token::Change(name, "RAISE NOTICE '%',", L"RAISE NOTICE '%',", 17);
 
@@ -720,7 +725,7 @@ bool SqlParser::ParseOracleVariableDeclarationBlock(Token *declare)
 	}
 	else
 	// PostgreSQL, Netezza required DECLARE keyword before outer declaration section after AS keyword
-	if(_source == SQL_ORACLE && Target(SQL_POSTGRESQL, SQL_NETEZZA) == true)
+	if(_source == SQL_ORACLE && Target(SQL_POSTGRESQL, SQL_OPENGAUSS, SQL_NETEZZA) == true)
 	{
 		Append(declare, "\nDECLARE", L"\nDECLARE", 8);
 
@@ -838,7 +843,7 @@ bool SqlParser::ParseOracleVariableDeclarationBlock(Token *declare)
 			ParseExpression(exp);
 
 			// For SQL Server and PostgreSQL, delete colon
-			if(colon != NULL && (Target(SQL_SQL_SERVER, SQL_POSTGRESQL) || _target_app == APP_JAVA))
+			if(colon != NULL && (Target(SQL_SQL_SERVER, SQL_POSTGRESQL, SQL_OPENGAUSS) || _target_app == APP_JAVA))
 				Token::Remove(colon);
 			else
 			// For Oracle add :
@@ -1024,7 +1029,7 @@ bool SqlParser::ParseOracleCursorDeclaration(Token *cursor, ListWM *cursors)
 	Token *is = GetNextWordToken("IS", L"IS", 2);
 
 	// FOR in SQL Server, MySQL, PostgreSQL
-	if(Target(SQL_SQL_SERVER, SQL_MARIADB, SQL_MYSQL, SQL_POSTGRESQL))
+	if(Target(SQL_SQL_SERVER, SQL_MARIADB, SQL_MYSQL, SQL_POSTGRESQL, SQL_OPENGAUSS))
 		Token::Change(is, "FOR", L"FOR", 3);
 
 	// For SQL Server, MySQL change to DECLARE name CURSOR
@@ -1039,7 +1044,7 @@ bool SqlParser::ParseOracleCursorDeclaration(Token *cursor, ListWM *cursors)
 	}
 	else
 	// For PostreSQL specify CURSOR after variable name
-	if(Target(SQL_POSTGRESQL))
+	if(Target(SQL_POSTGRESQL, SQL_OPENGAUSS))
 	{
 		APPEND_FMT(name, " CURSOR", cursor); 
 		Token::Remove(cursor);

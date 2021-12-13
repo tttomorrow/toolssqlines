@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -589,7 +594,7 @@ bool SqlParser::ParseSelectList(Token *select, int select_scope, bool *select_in
 			Token::Remove(into, last);
 
 		// Remove INTO clause in Informix FOR EACH statement when converted to Oracle, PostgreSQL FOR
-		if(select_scope == SQL_SEL_FOREACH && Target(SQL_ORACLE, SQL_POSTGRESQL) == true)
+		if(select_scope == SQL_SEL_FOREACH && Target(SQL_ORACLE, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
 			Token::Remove(into, last);
 
 		into_exists = true;
@@ -635,7 +640,7 @@ bool SqlParser::ParseSelectList(Token *select, int select_scope, bool *select_in
 			// No subquery, convert to variable assignment
 			else
 			{
-				if(Target(SQL_ORACLE, SQL_POSTGRESQL) == true)
+				if(Target(SQL_ORACLE, SQL_POSTGRESQL, SQL_OPENGAUSS) == true)
 				{
 					for(ListwmItem *i = tsql_assignments.GetFirst(); i != NULL; i = i->next)
 					{
@@ -893,7 +898,16 @@ bool SqlParser::ParseSelectFromClause(Token *select, bool nested_from, Token **f
 				if(first->Compare("dual", L"dual", 4) == true)
 				{
 					if(_target == SQL_NETEZZA)
+					{
 						Token::Change(first, "_v_dual", L"_v_dual", 7);
+					}
+					else
+					// openGauss
+					if (_target == SQL_OPENGAUSS)
+					{
+						Token::Remove(from);
+						Token::Remove(first);
+					}
 
 					dummy_exists = true;
 				}

@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -348,7 +353,7 @@ void SqlParser::Parse(Token *token, int scope, int *result_sets)
 		_spl_scope == SQL_SCOPE_PROC)
 	{
 		// PostgreSQL requires PERFORM proc() from within PL/pgSQL or SELECT proc() for standalone execution;
-		if(_target == SQL_POSTGRESQL)
+		if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
 			PREPEND(token, "PERFORM ");
 		else
 		// Netezza requires explicit CALL keyword

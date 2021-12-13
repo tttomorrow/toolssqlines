@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +51,7 @@ bool SqlParser::AlterColumnClause(Token *table, Token *table_name, Token *alter)
 		/*Token *value*/ (void) GetNextNumberToken();
 
 		// Change to ALTER SEQUENCE for PostgreSQL and Greenplum
-		if(_target == SQL_POSTGRESQL || _target == SQL_GREENPLUM)
+		if(_target == SQL_POSTGRESQL || _target == SQL_GREENPLUM || _target == SQL_OPENGAUSS )
 		{
 			Token *seq_name = AppendIdentifier(table_name, "_seq", L"_seq", 4);
 		
@@ -200,7 +205,7 @@ bool SqlParser::ParseSequenceOptions(Token **start_with_out, Token **increment_b
 		// NOCACHE
 		if(TOKEN_CMP(option, "NOCACHE"))
 		{
-			if(Target(SQL_MYSQL))
+			if(Target(SQL_MYSQL, SQL_OPENGAUSS))
 				Token::Remove(option);
 
 			STATS_DTL_DESC(SEQUENCE_NOCACHE_DESC)
@@ -242,7 +247,7 @@ bool SqlParser::ParseSequenceOptions(Token **start_with_out, Token **increment_b
 		// NOORDER
 		if(TOKEN_CMP(option, "NOORDER"))
 		{
-			if(Target(SQL_MYSQL, SQL_MARIADB))
+			if(Target(SQL_MYSQL, SQL_MARIADB, SQL_OPENGAUSS))
 				Token::Remove(option);
 
 			STATS_DTL_DESC(SEQUENCE_NOORDER_DESC)
@@ -256,7 +261,7 @@ bool SqlParser::ParseSequenceOptions(Token **start_with_out, Token **increment_b
 		// ORDER
 		if(TOKEN_CMP(option, "ORDER"))
 		{
-			if(Target(SQL_MYSQL))
+			if(Target(SQL_MYSQL, SQL_OPENGAUSS))
 				Token::Remove(option);
 			else
 			if(Target(SQL_MARIADB))
@@ -272,7 +277,7 @@ bool SqlParser::ParseSequenceOptions(Token **start_with_out, Token **increment_b
 		// NOKEEP
 		if(TOKEN_CMP(option, "NOKEEP"))
 		{
-			if(Target(SQL_MYSQL, SQL_MARIADB))
+			if(Target(SQL_MYSQL, SQL_MARIADB, SQL_OPENGAUSS))
 				Token::Remove(option);
 
 			STATS_DTL_DESC(SEQUENCE_NOKEEP_DESC)
@@ -286,7 +291,7 @@ bool SqlParser::ParseSequenceOptions(Token **start_with_out, Token **increment_b
 		// KEEP
 		if(TOKEN_CMP(option, "KEEP"))
 		{
-			if(Target(SQL_MYSQL))
+			if(Target(SQL_MYSQL, SQL_OPENGAUSS))
 				Token::Remove(option);
 			else
 			if(Target(SQL_MARIADB))
@@ -302,7 +307,7 @@ bool SqlParser::ParseSequenceOptions(Token **start_with_out, Token **increment_b
 		// GLOBAL
 		if(TOKEN_CMP(option, "GLOBAL"))
 		{
-			if(Target(SQL_MYSQL, SQL_MARIADB))
+			if(Target(SQL_MYSQL, SQL_MARIADB, SQL_OPENGAUSS))
 				Token::Remove(option);
 
 			STATS_DTL_DESC(SEQUENCE_GLOBAL_DESC)
@@ -312,6 +317,37 @@ bool SqlParser::ParseSequenceOptions(Token **start_with_out, Token **increment_b
 
 			exists = true;
 		}
+		else
+		// SESSION
+		if(TOKEN_CMP(option, "SESSION"))
+                {
+                        if(Target(SQL_OPENGAUSS))
+                                Token::Remove(option);
+
+                        exists = true;
+                }
+		else
+                // SHARING
+                if(TOKEN_CMP(option, "SHARING"))
+                {
+                        if(Target(SQL_OPENGAUSS))
+                                Token::Remove(option);
+
+			Token* op = GetNextCharToken('=', L'=');
+			if (op != NULL && Target(SQL_OPENGAUSS))
+				Token::Remove(op);
+			else
+				PushBack(op);
+
+			Token* param = GetNextToken();
+			if (param != NULL && Target(SQL_OPENGAUSS) &&
+			    (TOKEN_CMP(param, "NONE") || TOKEN_CMP(param, "DATA") || TOKEN_CMP(param, "METADATA")))
+				Token::Remove(param);
+			else
+				PushBack(param);
+
+                        exists = true;
+                }
 		else
 		{
 			PushBack(option);

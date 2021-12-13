@@ -1,5 +1,10 @@
 /** 
- * Copyright (c) 2016 SQLines
+ *
+ * Portions Copyright (c) 2021 Huawei Technologies Co.,Ltd.
+ * 
+ * ---------------------------------------------------------------------- 
+ *
+ * Portions Copyright (c) 2016 SQLines
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -433,6 +438,9 @@ short Sqlines::DefineType(const char *name)
 	if(_stricmp(name, "postgresql") == 0)
 		type = SQL_POSTGRESQL;
 	else
+	if(_stricmp(name, "opengauss") == 0)
+                type = SQL_OPENGAUSS;
+        else
 	if(_stricmp(name, "sybase") == 0)
 		type = SQL_SYBASE;
 	else
@@ -495,8 +503,8 @@ void Sqlines::PrintHowToUse()
 
 	_getch();
 #else
-	printf("\n\nConvert script.sql file from Oracle to MySQL");
-	printf("\n\n   ./sqlines -s=oracle -t=mysql -in=script.sql");
+	printf("\n\nConvert script.sql file from Oracle to openGauss");
+	printf("\n\n   ./sqlines -s=oracle -t=opengauss -in=script.sql");
 	printf("\n");
 #endif
 	printf("\n");
