@@ -1,10 +1,11 @@
 ## HOW TO BUILD
 
 ```sh
-cd sqlines
-make clean && make
-```
+install  :   sh build.sh -i
+uninstall:   sh build.sh -m
 
+Convenient measures: export PATH=`pwd`/bin
+```
 
 
 ## HOW TO USE

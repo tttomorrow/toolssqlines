@@ -1401,6 +1401,17 @@ bool SqlParser::ParseColumnConstraints(Token *create, Token *table_name, Token *
 
 			num++;
 		}
+		else
+		// REFERENCES
+		if(TOKEN_CMP(cns, "REFERENCES"))
+		{
+			Token *tbname = GetNextToken();
+			Token* op = GetNextToken();
+			while (op->Compare(')', L')') == false)
+			{
+				op = GetNextToken();
+			}
+		}
 	}
 
 	return exists;
