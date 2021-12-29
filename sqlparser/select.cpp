@@ -800,6 +800,28 @@ bool SqlParser::ParseSelectListPredicate(Token **rowlimit_slist, bool *rowlimit_
 			exists = true;
 			continue;
 		}
+		else
+		if(next->Compare("ALL", L"ALL", 3) == true)
+		{
+			exists = true;
+			continue;
+		}
+		else
+		if(next->Compare("SQL_CACHE", L"SQL_CACHE", 9) == true ||
+		   next->Compare("DISTINCTROW", L"DISTINCTROW", 11) == true ||
+		   next->Compare("SQL_NO_CACHE", L"SQL_NO_CACHE", 12) == true ||
+		   next->Compare("HIGH_PRIORITY", L"HIGH_PRIORITY", 13) == true ||
+		   next->Compare("STRAIGHT_JOIN", L"STRAIGHT_JOIN", 13) == true ||
+		   next->Compare("SQL_BIG_RESULT", L"SQL_BIG_RESULT", 14) == true ||
+		   next->Compare("SQL_SMALL_RESULT", L"SQL_SMALL_RESULT", 16) == true ||
+		   next->Compare("SQL_BUFFER_RESULT", L"SQL_BUFFER_RESULT", 17) == true ||
+		   next->Compare("SQL_CALC_FOUND_ROWS", L"SQL_CALC_FOUND_ROWS", 19) == true)
+		{
+			if(_target == SQL_OPENGAUSS)
+				Token::Remove(next);
+			exists = true;
+			continue;
+		}
 
 		// Not a predicate
 		PushBack(next);

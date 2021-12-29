@@ -1016,7 +1016,7 @@ bool SqlParser::ParseBitType(Token *name)
         }
         else
         // Convert to BOOLEAN in PostgreSQL
-        if((_target == SQL_POSTGRESQL && _source != SQL_POSTGRESQL) || (_target == SQL_OPENGAUSS && _source != SQL_OPENGAUSS))
+        if(_target == SQL_POSTGRESQL && _source != SQL_POSTGRESQL)
             Token::Change(name, "BOOLEAN", L"BOOLEAN", 7);
         else
         // Convert to TINYINT in MySQL
@@ -2493,7 +2493,7 @@ bool SqlParser::ParseDecimalType(Token *name, int clause_scope)
         }
         else
         // DECIMAL(10,0) is default in MySQL
-        if(_source == SQL_MYSQL && _target != SQL_MYSQL)
+        if(_source == SQL_MYSQL && _target != SQL_MYSQL && _target != SQL_OPENGAUSS)
         {
             Append(name, "(10,0)", L"(10,0)", 6);
             conv = true;
@@ -4973,25 +4973,25 @@ bool SqlParser::ParseNumericType(Token *name)
         if(_source == SQL_ORACLE && _target != SQL_ORACLE)
             Append(name, "(38,0)", L"(38,0)", 6);
         else
-            // NUMERIC(18,0) is default in SQL Server and Sybase ASE
-            if(Source(SQL_SQL_SERVER, SQL_SYBASE) == true && Target(SQL_SQL_SERVER, SQL_SYBASE) == false)
-                Append(name, "(18,0)", L"(18,0)", 6);
-            else
-                // NUMERIC(5,0) is default in DB2
-                if(_source == SQL_DB2 && _target != SQL_DB2)
-                    Append(name, "(5,0)", L"(5,0)", 5);
-                else
-                    // NUMERIC(10,0) is default in MySQL
-                    if(_source == SQL_MYSQL && _target != SQL_MYSQL)
-                        Append(name, "(10,0)", L"(10,0)", 6);
-                    else
-                        // NUMERIC(16,0) is default in Informix
-                        if(_source == SQL_INFORMIX && _target != SQL_INFORMIX)
-                            Append(name, "(16,0)", L"(16,0)", 6);
-                        else
-                            // NUMERIC(30,6) is default in Sybase ASA
-                            if(_source == SQL_SYBASE_ASA && _target != SQL_SYBASE_ASA)
-                                Append(name, "(30,6)", L"(30,6)", 6);
+        // NUMERIC(18,0) is default in SQL Server and Sybase ASE
+        if(Source(SQL_SQL_SERVER, SQL_SYBASE) == true && Target(SQL_SQL_SERVER, SQL_SYBASE) == false)
+            Append(name, "(18,0)", L"(18,0)", 6);
+        else
+        // NUMERIC(5,0) is default in DB2
+        if(_source == SQL_DB2 && _target != SQL_DB2)
+            Append(name, "(5,0)", L"(5,0)", 5);
+        else
+        // NUMERIC(10,0) is default in MySQL
+        if(_source == SQL_MYSQL && _target != SQL_MYSQL && _target != SQL_OPENGAUSS)
+            Append(name, "(10,0)", L"(10,0)", 6);
+        else
+        // NUMERIC(16,0) is default in Informix
+        if(_source == SQL_INFORMIX && _target != SQL_INFORMIX)
+            Append(name, "(16,0)", L"(16,0)", 6);
+        else
+        // NUMERIC(30,6) is default in Sybase ASA
+        if(_source == SQL_SYBASE_ASA && _target != SQL_SYBASE_ASA)
+            Append(name, "(30,6)", L"(30,6)", 6);
     }
 
     // Convert to NUMBER in Oracle
@@ -6196,7 +6196,7 @@ bool SqlParser::ParseTimestampType(Token *name)
     if(open == NULL)
     {
         // TIMESTAMP(0) is default in MySQL
-        if(_source == SQL_MYSQL && _target != SQL_MYSQL)
+        if(_source == SQL_MYSQL && _target != SQL_MYSQL && _target != SQL_OPENGAUSS)
         {
             Append(name, "(0)", L"(0)", 3);
             conv = true;

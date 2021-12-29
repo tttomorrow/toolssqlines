@@ -1299,6 +1299,7 @@ public:
 
 	// Clauses
 	bool AlterColumnClause(Token *table, Token *table_name, Token *alter);
+	bool AlterAddColumnClause(Token *table, Token *table_name, Token *alter);
 	bool ParseCreateTableColumns(Token *create, Token *table_name, ListW &pkcols, Token **id_col, Token **id_start, Token **id_inc, bool *id_default, ListWM *inline_indexes, Token **last_colname);
 	bool ParseColumnConstraints(Token *create, Token *table_name, Token *column, Token *type, Token *type_end, Token **id_col, Token **id_start, Token **id_inc, bool *id_default);
 	bool ParseDeclareCondition(Token *declare, Token *name, Token *condition);

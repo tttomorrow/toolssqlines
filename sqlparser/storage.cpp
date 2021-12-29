@@ -498,7 +498,7 @@ bool SqlParser::ParseMysqlStorageClause(Token *table_name, Token **id_start, Tok
 		{
 			// Equal sign = is optional in the clause
 			Token *equal = GetNextCharToken('=', L'=');
-			Token* val = GetNextNumberToken();
+			Token* val = GetNextToken();
 
 			if(_target != SQL_MYSQL)
 			{
@@ -814,6 +814,14 @@ bool SqlParser::ParseOracleStorageClause()
 			exists = true;
 			continue;
 		}
+		// MONITORING
+		if(next->Compare("MONITORING", L"MONITORING", 10) == true)
+		{
+			if(_target != SQL_ORACLE)
+				Token::Remove(next);
+			exists = true;
+			continue;
+		}
 		else
 		// TABLESPACE name 
 		if(next->Compare("TABLESPACE", L"TABLESPACE", 10) == true)
@@ -875,18 +883,21 @@ bool SqlParser::ParseOracleStorageClause()
 		if(next->Compare("ENABLE", L"ENABLE", 6) == true)
 		{
 			Token *row = GetNextWordToken("ROW", L"ROW", 3);
-
+			Token *movement = NULL;
 			if(row != NULL)
 			{
-				Token *movement = GetNextWordToken("MOVEMENT", L"MOVEMENT", 8);
-			
-				// Remove if not Oracle
-				if(_target != SQL_ORACLE)
-					Token::Remove(next, movement);
-
-				exists = true;
-				continue;
+				movement = GetNextWordToken("MOVEMENT", L"MOVEMENT", 8);
 			}
+			
+			// Remove if not Oracle
+			if(_target != SQL_ORACLE)
+			{
+				Token::Remove(next);
+				Token::Remove(row);
+				Token::Remove(movement);
+			}
+			exists = true;
+			continue;
 		}
 		else
 		// REVERSE index or primary key storage attribute 

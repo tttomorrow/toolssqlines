@@ -519,6 +519,16 @@ bool SqlParser::ParseCreateStatement(Token *create, int *result_sets, bool *proc
 		next = GetNextToken();
 	}
 
+	if(Token::Compare(next, "NO", L"NO", 2) == true)
+        {
+                Token *force = next;
+
+                next = GetNextToken();
+
+                if(_target != SQL_ORACLE)
+                        Token::Remove(force);
+        }
+
 	// FORCE VIEW in Oracle can follow OR REPLACE
 	if(Token::Compare(next, "FORCE", L"FORCE", 5) == true)
 	{
@@ -567,6 +577,11 @@ bool SqlParser::ParseCreateStatement(Token *create, int *result_sets, bool *proc
 		materialized = next;
 		next = GetNextToken();
 	}
+
+	if(TOKEN_CMP(next, "TEMPORARY"))
+        {
+                next = GetNextToken();
+        }
 
 	if(next == NULL)
 		return false;
@@ -787,8 +802,15 @@ bool SqlParser::ParseAlterTableStatement(Token *alter, Token *table)
 	// ADD constraint
 	if(next->Compare("ADD", L"ADD", 3) == true)
 	{
-		// Try to parse a standalone column constraint
-		ParseStandaloneColumnConstraints(alter, table_name, pkcols, NULL);
+		if (TOKEN_GETNEXTW("COLUMN") != NULL)
+		{
+			AlterAddColumnClause(alter, table_name, next);
+		}
+		else
+		{
+			// Try to parse a standalone column constraint
+			ParseStandaloneColumnConstraints(alter, table_name, pkcols, NULL);
+		}
 
 		gp_comment = true;
 	}
@@ -877,12 +899,12 @@ bool SqlParser::ParseAlterIndexStatement(Token *alter, Token * /*index*/)
                 // Oracle PARALLEL num
                 if(_source == SQL_ORACLE && _target == SQL_OPENGAUSS)
                 {
-			if (next->Compare("ENABLE", L"ENABLE", 6) == true || next->Compare("VISIBLE", L"VISIBLE", 7) == true)
+			if (next->Compare("ENABLE", L"ENABLE", 6) == true || next->Compare("VISABLE", L"VISABLE", 7) == true)
 			{
 				TOKEN_CHANGE(next, "REBUILD");
 			}
 			else
-			if (next->Compare("DISABLE", L"DISABLE", 7) == true || next->Compare("INVISIBLE", L"INVLSIBLE", 9) == true )
+			if (next->Compare("DISABLE", L"DISABLE", 7) == true || next->Compare("INVISABLE", L"INVISABLE", 9) == true )
 			{
 				TOKEN_CHANGE(next, "UNUSABLE");
 			}
@@ -1693,6 +1715,37 @@ bool SqlParser::ParseCreateTable(Token *create, Token *token)
     }
     else
     {
+        if (_source == SQL_ORACLE && _target == SQL_OPENGAUSS) {
+        Token* sharing = GetNextToken();
+        if (sharing->Compare("SHARING", L"SHARING", 7))
+        {
+            Token* op = GetNextCharToken('=', L'=');
+            if (op == NULL)
+                return false;
+
+	    Token* param = GetNextToken();
+            Token* param2 = NULL;
+
+	    if (param == NULL)
+                return false;
+            else
+            if (param->Compare("EXTENDED", L"EXTENDED", 8))
+            {
+                param2 = GetNextToken();
+                if (param2 == NULL)
+                    return false;
+                }
+
+                Token::Remove(sharing);
+                Token::Remove(op);
+                Token::Remove(param);
+                Token::Remove(param2);
+            }
+            else
+            {
+                    PushBack(sharing);
+            }
+        }
 	    // Next token must be (
 	    if(GetNextCharToken('(', L'(') == NULL)
 		{
@@ -1720,38 +1773,6 @@ bool SqlParser::ParseCreateTable(Token *create, Token *token)
 	    // For Greenplum, add DISTRIBUTED by based on primary keys
 	    if(_target == SQL_GREENPLUM && pkcols.GetCount() > 0)
 		    AddGreenplumDistributedBy(create, close, pkcols, col_end);
-    }
-
-    if (_source == SQL_ORACLE && _target == SQL_OPENGAUSS) {
-	Token* sharing = GetNextToken();
-	if (sharing->Compare("SHARING", L"SHARING", 7))
-        {
-                Token* op = GetNextCharToken('=', L'=');
-                if (op == NULL)
-                        return false;
-
-                Token* param = GetNextToken();
-                Token* param2 = NULL;
-
-                if (param == NULL)
-                        return false;
-                else
-                if (param->Compare("EXTENDED", L"EXTENDED", 8))
-                {
-                        param2 = GetNextToken();
-                        if (param2 == NULL)
-                                return false;
-                }
-
-                Token::Remove(sharing);
-                Token::Remove(op);
-                Token::Remove(param);
-                Token::Remove(param2);
-        }
-	else
-	{
-		PushBack(sharing);
-	}
     }
 
     // Table comment in MySQL
@@ -1893,6 +1914,14 @@ bool SqlParser::ParseCreateIndex(Token *create, Token *unique, Token *index)
 
 	if(index == NULL)
 		return false;
+
+	Token* inei = GetNextWordToken("IF", L"IF", 2);
+	if (inei != NULL && _target == SQL_OPENGAUSS)
+	{
+		Token* inen = GetNextWordToken("NOT", L"NOT", 3);
+		Token* inee = GetNextWordToken("EXISTS", L"EXISTS", 6);
+		Token::Remove(inei, inee);
+	}
 
 	// Get index name
 	Token *name = GetNextIdentToken(SQL_IDENT_OBJECT, SQL_SCOPE_INDEX);
@@ -2713,7 +2742,7 @@ bool SqlParser::ParseCreateProcedure(Token *create, Token *or_, Token *replace, 
 	}
 
 	// PostgerSQL supports only CREATE FUNCTION
-	if(_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS)
+	if(_target == SQL_POSTGRESQL)
 		Token::Change(procedure, "FUNCTION", L"FUNCTION", 8);
 
 	// Procedure name
@@ -3403,6 +3432,15 @@ bool SqlParser::ParseDeleteStatement(Token *delete_)
     Token *next = GetNext();
 
     bool delete_from = false;
+
+    while (next != NULL && _target == SQL_OPENGAUSS &&
+           (next->Compare("LOW_PRIORITY", L"LOW_PRIORITY", 12) ||
+	    next->Compare("QUICK", L"QUICK", 5) ||
+	    next->Compare("IGNORE", L"IGNORE", 6)))
+    {
+	    Token::Remove(next);
+	    next = GetNext();
+    }
 
     if(next == NULL)
         return false;
@@ -4739,7 +4777,7 @@ bool SqlParser::ParseCreateSchema(Token *create, Token *schema)
 
 			if(_target == SQL_OPENGAUSS && name != NULL)
 			{
-				Token::Change(next, "LC_COLLECT", L"LC_COLLECT", 10);
+				Token::Change(next, "LC_COLLATE", L"LC_COLLATE", 10);
 			}
 		}
 		else
@@ -4789,6 +4827,14 @@ bool SqlParser::ParseCreateSequence(Token *create, Token *sequence)
 
 	STATS_DECL
 	STATS_SET_DESC(SQL_STMT_CREATE_SEQUENCE_DESC)
+
+        Token* inei = GetNextWordToken("IF", L"IF", 2);
+        if (inei != NULL && _target == SQL_OPENGAUSS)
+        {
+                Token* inen = GetNextWordToken("NOT", L"NOT", 3);
+                Token* inee = GetNextWordToken("EXISTS", L"EXISTS", 6);
+                Token::Remove(inei, inee);
+        }
 
 	Token *seq_name = GetNextIdentToken();
 
@@ -7094,6 +7140,8 @@ bool SqlParser::ParseInsertStatement(Token *insert)
 			Token::Remove(action);
 			action = GetNextToken();
 		}
+		if(action != NULL)
+			PushBack(action);
 	}
 
 	Token *into = GetNextWordToken("INTO", L"INTO", 4);
@@ -10657,7 +10705,7 @@ bool SqlParser::ParseFunctionReturns(Token *function)
 	if(Token::Compare(returns, "RETURN", L"RETURN", 6) == true)
 	{
 		// Change to RETURNS in SQL Server, MySQL
-		if(Target(SQL_SQL_SERVER, SQL_MARIADB, SQL_MYSQL) == true)
+		if(Target(SQL_SQL_SERVER, SQL_MARIADB, SQL_MYSQL, SQL_OPENGAUSS) == true)
 			Token::Change(returns, "RETURNS", L"RETURNS", 7);
 
 		// Return data type
@@ -11392,7 +11440,7 @@ bool SqlParser::ParseProcedureOptions(Token *create)
 	}
 
 	// PostgreSQL requires RETURNS VOID (set if there is no any other RETURN keyword as in Informix i.e)
-	if(_spl_returns == NULL && (_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS))
+	if(_spl_returns == NULL && _target == SQL_POSTGRESQL)
 	{
 		bool as_exists = TOKEN_CMP(options_start, "AS");
 
@@ -11491,6 +11539,14 @@ bool SqlParser::ParseFunctionBody(Token *create, Token *function, Token *name, T
 		// If we converted function to procedures, AS is required for SQL Server
 		if(_target == SQL_SQL_SERVER && _spl_func_to_proc)
 			PREPEND(begin, "AS\n");
+	}
+	else
+	{
+		if((_source != SQL_POSTGRESQL || _source != SQL_OPENGAUSS) && 
+		   (_target == SQL_POSTGRESQL || _target == SQL_OPENGAUSS))
+		{
+			Token::Change(as, "AS $$", L"AS $$", 5);
+		}
 	}
 
 	// MySQL does not allow AS

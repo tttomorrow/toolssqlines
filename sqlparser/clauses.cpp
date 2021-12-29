@@ -68,6 +68,38 @@ bool SqlParser::AlterColumnClause(Token *table, Token *table_name, Token *alter)
 	return true;
 }
 
+bool SqlParser::AlterAddColumnClause(Token *table, Token *table_name, Token *alter)
+{
+	if(alter == NULL)
+		return false;
+
+	Token *name = GetNextIdentToken();
+	if (name == NULL)
+		return false;
+
+	ParseDataType(GetNextToken());
+
+	Token* next = GetNextToken();
+	if (next == NULL)
+		return true;
+	else
+	if (next->Compare("FIRST", L"FIRST", 5))
+	{
+		Token::Remove(next);
+	}
+	else
+	if (next->Compare("AFTER", L"AFTER", 5))
+	{
+		Token::Remove(next);
+		Token::Remove(GetNextIdentToken());
+	}
+	else
+	{
+		PushBack(next);
+	}
+	return true;
+}
+
 // ALTER/CREATE SEQUENCE options
 bool SqlParser::ParseSequenceOptions(Token **start_with_out, Token **increment_by_out, StatsSummaryItem &ssi)
 {
@@ -129,7 +161,7 @@ bool SqlParser::ParseSequenceOptions(Token **start_with_out, Token **increment_b
 		{
 			Token *value = GetNextToken();
 
-			if(Target(SQL_MYSQL))
+			if(Target(SQL_MYSQL, SQL_OPENGAUSS))
 				Token::Remove(option, value);
 
 			STATS_DTL_DESC(SEQUENCE_MINVALUE_DESC)
@@ -144,7 +176,7 @@ bool SqlParser::ParseSequenceOptions(Token **start_with_out, Token **increment_b
 		// NOMINVALUE
 		if(TOKEN_CMP(option, "NOMINVALUE"))
 		{
-			if(Target(SQL_MYSQL))
+			if(Target(SQL_MYSQL, SQL_OPENGAUSS))
 				Token::Remove(option);
 
 			STATS_DTL_DESC(SEQUENCE_NOMINVALUE_DESC)
@@ -219,7 +251,7 @@ bool SqlParser::ParseSequenceOptions(Token **start_with_out, Token **increment_b
 		// NOCYCLE
 		if(TOKEN_CMP(option, "NOCYCLE"))
 		{
-			if(Target(SQL_MYSQL))
+			if(Target(SQL_MYSQL, SQL_OPENGAUSS))
 				Token::Remove(option);
 
 			STATS_DTL_DESC(SEQUENCE_NOCYCLE_DESC)
@@ -233,7 +265,7 @@ bool SqlParser::ParseSequenceOptions(Token **start_with_out, Token **increment_b
 		// CYCLE
 		if(TOKEN_CMP(option, "CYCLE"))
 		{
-			if(Target(SQL_MYSQL))
+			if(Target(SQL_MYSQL, SQL_OPENGAUSS))
 				Token::Remove(option);
 
 			STATS_DTL_DESC(SEQUENCE_CYCLE_DESC)
