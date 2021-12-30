@@ -626,7 +626,7 @@ bool SqlParser::ParseMysqlStorageClause(Token *table_name, Token **id_start, Tok
 		*id_start = auto_start;
 
 	// Restart sequence for PostgreSQL and Greenplum
-	if(auto_start != NULL && (_target == SQL_POSTGRESQL || _target == SQL_GREENPLUM || _target == SQL_OPENGAUSS))
+	if(auto_start != NULL && (_target == SQL_POSTGRESQL || _target == SQL_GREENPLUM))
 	{
 		// Try to get ;
 		Token *semi = GetNextCharToken(';', L';');
