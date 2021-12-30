@@ -2,7 +2,12 @@ PRO_NAME=sqlines
 
 function usage()
 {
-    cat README.md
+    echo " "
+    echo "BUILD AND REMOVE"
+    echo " "
+    echo "    install  :   sh build.sh -i"
+    echo "    uninstall:   sh build.sh -m"
+    echo " "
 }
 
 function install()
