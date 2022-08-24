@@ -1,0 +1,44 @@
+javafx-base
+  cpeName: org.openjfx.javafx-base
+  version: 11
+  url: 'https://mvnrepository.com/artifact/org.openjfx/javafx-base'
+javafx-controls
+  cpeName: org.openjfx.javafx-controls
+  version: 11
+  url: 'https://mvnrepository.com/artifact/org.openjfx/javafx-controls'
+javafx-graphics
+  cpeName: org.openjfx.javafx-graphics
+  version: 11
+  url: 'https://mvnrepository.com/artifact/org.openjfx/javafx-graphics'
+richtextfx
+  cpeName: org.fxmisc.richtext
+  version: 0.10.6
+  url: 'https://mvnrepository.com/artifact/org.fxmisc.richtext'
+flowless
+  cpeName: org.fxmisc.flowless
+  version: 0.6.6
+  url: 'https://mvnrepository.com/artifact/org.fxmisc'
+nsmenufx
+  cpeName: de.jangassen.nsmenufx
+  version: 3.1.0
+  url: 'https://mvnrepository.com/artifact/org.fxmisc.flowless'
+log4j-core
+  cpeName: org.apache.logging.log4j
+  version: 2.17.0
+  url: 'https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core'
+log4j-api
+  cpeName: org.apache.logging.log4j
+  version: 2.17.0
+  url: 'https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api'
+annotations
+  cpeName: org.jetbrains.annotations
+  version: 22.0.0
+  url: ''
+junit
+  cpeName: junit
+  version: 4.12
+  url: 'https://mvnrepository.com/artifact/junit'
+mockito-all
+  cpeName: org.mockito
+  version: 1.10.19
+  url: 'https://mvnrepository.com/artifact/org.mockito'
