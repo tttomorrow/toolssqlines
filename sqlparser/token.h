@@ -180,7 +180,7 @@ public:
 	static void ClearTarget(Token *token);
 
 	// Append data to the string
-	void AppendTarget(char *string, int *cur_len);
+	void AppendTarget(char *string, size_t *cur_len);
 
 	// Format target value case
 	static void FormatTargetValue(Token *token, Token *format = NULL);

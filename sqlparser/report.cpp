@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 #include "report.h"
 #include "sqlparser.h"
 #include "str.h"
@@ -80,17 +81,26 @@ void Report::CreateReport(Stats *stats, int source, int target, const char *summ
 
 	const char *cur = tpl_input;
 
-    FILE *file = fopen(_report_path, "w+");
-	FILE *snippets_file = fopen(_report_snippets_path, "wb+");
-    
-    if(file == NULL)
-    {
+    char path[PATH_MAX] = {0};
+    if (realpath(_report_path, path) == NULL) {
+        printf("\n\nError: Cannot find realpath of file %s", _report_path);
+        return;
+    }
+
+    FILE *file = fopen(path, "w+");
+    if (file == NULL) {
         printf("\n\nError: Cannot create report file %s", _report_path);
         return;
     }
 
-	if(snippets_file == NULL)
-    {
+    memset(path, 0, sizeof(path));
+    if (realpath(_report_snippets_path, path) == NULL) {
+        printf("\n\nError: Cannot find realpath of file %s", _report_snippets_path);
+        return;
+    }
+
+	FILE *snippets_file = fopen(path, "wb+");
+	if(snippets_file == NULL) {
         printf("\n\nError: Cannot create report snippets file %s", _report_snippets_path);
         return;
     }
