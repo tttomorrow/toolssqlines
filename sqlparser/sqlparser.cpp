@@ -304,7 +304,7 @@ void SqlParser::CreateOutputString(const char **output, int *out_size)
 	char *out = new char[len + 1]; *out = 0;
 
 	token = _tokens.GetFirst();
-	int cur_len = 0;
+	size_t cur_len = 0;
 
 	while(token != NULL)
 	{

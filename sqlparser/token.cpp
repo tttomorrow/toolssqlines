@@ -640,12 +640,12 @@ void Token::ClearTarget(Token *token)
 }
 
 // Append data to the string
-void Token::AppendTarget(char *string, int *cur_len)
+void Token::AppendTarget(char *string, size_t *cur_len)
 {
 	if(string == NULL || cur_len == NULL)
 		return;
 
-	int clen = *cur_len;
+	size_t clen = *cur_len;
 
 	// Token was deleted
 	if(flags & TOKEN_REMOVED)
